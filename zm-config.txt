@@ -1,0 +1,532 @@
+Name: ZM_DB_SERVER
+Value: localhost
+Description: Machine on which the database server is running
+
+Name: ZM_DB_NAME
+Value: zm
+Description: Database containing the tables
+
+Name: ZM_DB_USER
+Value: 
+Description: DB user name, needs at least select, insert, update and delete privileges
+
+Name: ZM_DB_PASS
+Value: 
+Description: DB user password
+
+Name: ZM_LANG_DEFAULT
+Value: en_gb
+Description: Default language used by web interface
+
+Name: ZM_OPT_USE_AUTH
+Value: yes
+Description: Authenticate user logins to ZoneMinder
+
+Name: ZM_AUTH_METHOD
+Value: hashed
+Description: Method used to send authentication information
+
+Name: ZM_AUTH_SECRET
+Value: 
+Description: Secret used when encoding authentication information
+
+Name: ZM_DIR_EVENTS
+Value: events
+Description: Directory where events are stored
+
+Name: ZM_DIR_IMAGES
+Value: images
+Description: Directory where the images that the ZoneMinder client generates are stored
+
+Name: ZM_DIR_SOUNDS
+Value: sounds
+Description: Directory to the sounds that the ZoneMinder client can use
+
+Name: ZM_PATH_ZMS
+Value: /cgi-bin/zm/zms
+Description: Web path to zms streaming server
+
+Name: ZM_CAN_STREAM
+Value: auto
+Description: Override the automatic detection of browser streaming capability
+
+Name: ZM_RAND_STREAM
+Value: no
+Description: Add a random string to prevent caching of streams
+
+Name: ZM_OPT_CAMBOZOLA
+Value: yes
+Description: Is the (optional) cambozola java streaming client installed (recommended)
+
+Name: ZM_PATH_CAMBOZOLA
+Value: /zm/cambozola.jar
+Description: Web path to (optional) cambozola java streaming client (recommended)
+
+Name: ZM_TIMESTAMP_ON_CAPTURE
+Value: yes
+Description: Timestamp images as soon as they are captured
+
+Name: ZM_LOCAL_BGR_INVERT
+Value: yes
+Description: Invert BGR colours to RGB
+
+Name: ZM_Y_IMAGE_DELTAS
+Value: yes
+Description: Whether we calculate images differences using Y channel
+
+Name: ZM_FAST_IMAGE_BLENDS
+Value: yes
+Description: Whether we use a fast algorithm to blend the reference image
+
+Name: ZM_COLOUR_JPEG_FILES
+Value: yes
+Description: Colourise greyscale JPEG files
+
+Name: ZM_JPEG_FILE_QUALITY
+Value: 70
+Description: Set the JPEG quality setting for the saved event files (1-100)
+
+Name: ZM_JPEG_IMAGE_QUALITY
+Value: 70
+Description: Set the JPEG quality setting for the streamed 'live' images (1-100)
+
+Name: ZM_BLEND_ALARMED_IMAGES
+Value: yes
+Description: Whether alarmed images are blended to update the reference image
+
+Name: ZM_NO_MAX_FPS_ON_ALARM
+Value: yes
+Description: Should any Maximum FPS be ignored if an alarm occurs
+
+Name: ZM_OPT_ADAPTIVE_SKIP
+Value: yes
+Description: Should frame analysis try and be efficient in skipping frames
+
+Name: ZM_OPT_REMOTE_CAMERAS
+Value: yes
+Description: Are you going to use remote/networked cameras
+
+Name: ZM_HTTP_VERSION
+Value: 1.1
+Description: The version of HTTP that ZoneMinder will use to connect
+
+Name: ZM_HTTP_UA
+Value: ZoneMinder
+Description: The user agent that ZoneMinder uses to identify itself
+
+Name: ZM_HTTP_TIMEOUT
+Value: 2500
+Description: How long ZoneMinder waits before giving up on images (millseconds)
+
+Name: ZM_OPT_MPEG
+Value: ffmpeg
+Description: Is there an (optional) mpeg video encoder installed
+
+Name: ZM_PATH_MPEG_ENCODE
+Value: /usr/bin/mpeg_encode
+Description: Path to (optional) Berkeley mpeg encoder
+
+Name: ZM_PATH_FFMPEG
+Value: /usr/bin/ffmpeg
+Description: Path to (optional) ffmpeg mpeg encoder
+
+Name: ZM_FFMPEG_OPTIONS
+Value: -hq -b 600
+Description: Additional options to ffmpeg
+
+Name: ZM_OPT_NETPBM
+Value: yes
+Description: Are the (optional) Netpbm utilities installed
+
+Name: ZM_PATH_NETPBM
+Value: /usr/bin
+Description: Path to (optional) Netpbm utilities
+
+Name: ZM_OPT_TRIGGERS
+Value: no
+Description: Whether we want to interface external event triggers via socket or device files
+
+Name: ZM_PATH_SOCKS
+Value: /var/lib/zm
+Description: Path to the various Unix domain socket files that ZoneMinder uses
+
+Name: ZM_PATH_LOGS
+Value: /var/log/zm
+Description: Path to the various logs that the ZoneMinder daemons generate
+
+Name: ZM_VIDEO_STREAM_METHOD
+Value: jpeg
+Description: Which method should be used to send video streams to your browser, choose 'mpeg' or 'jpeg'
+
+Name: ZM_VIDEO_TIMED_FRAMES
+Value: yes
+Description: Whether video frames are sent tagged with a timestamp for more realistic streaming
+
+Name: ZM_VIDEO_LIVE_FORMAT
+Value: asf
+Description: What format 'live' video streams are played in
+
+Name: ZM_VIDEO_REPLAY_FORMAT
+Value: asf
+Description: What format 'replay' video streams are played in
+
+Name: ZM_WEB_POPUP_ON_ALARM
+Value: yes
+Description: Should the monitor window jump to the top if an alarm occurs
+
+Name: ZM_OPT_X10
+Value: no
+Description: Whether we want to interface with X10 devices
+
+Name: ZM_X10_DEVICE
+Value: /dev/ttyS0
+Description: What device is your X10 controller connected on
+
+Name: ZM_X10_HOUSE_CODE
+Value: A
+Description: What X10 house code should be used
+
+Name: ZM_X10_DB_RELOAD_INTERVAL
+Value: 60
+Description: How often (in seconds) the X10 daemon reloads the monitors from the database
+
+Name: ZM_WEB_SOUND_ON_ALARM
+Value: no
+Description: Should the monitor window play a sound if an alarm occurs
+
+Name: ZM_WEB_ALARM_SOUND
+Value: 
+Description: The sound to play on alarm, put this in the sounds directory
+
+Name: ZM_WEB_COMPACT_MONTAGE
+Value: yes
+Description: Whether to compact the montage view by removing extra detail
+
+Name: ZM_WEB_MONTAGE_MAX_COLS
+Value: 2
+Description: The maximum number of monitor columns in the montage view
+
+Name: ZM_WEB_MONTAGE_WIDTH
+Value: 320
+Description: What width should each monitor in the montage view be
+
+Name: ZM_WEB_MONTAGE_HEIGHT
+Value: 240
+Description: What height should each monitor in the montage view be
+
+Name: ZM_OPT_FAST_DELETE
+Value: yes
+Description: When deleting events should the client only delete the database records for speed
+
+Name: ZM_STRICT_VIDEO_CONFIG
+Value: yes
+Description: Whether to allow errors in setting video config to be fatal
+
+Name: ZM_SHM_KEY
+Value: 0x7a6d2000
+Description: Shared memory key to use, only change if it clashes with another application
+
+Name: ZM_FILTER_RELOAD_DELAY
+Value: 300
+Description: How often (in seconds) filters are reloaded in zmfilter.pl
+
+Name: ZM_OPT_UPLOAD
+Value: no
+Description: Should ZoneMinder try and upload events that match corresponding filters
+
+Name: ZM_UPLOAD_ARCH_FORMAT
+Value: tar
+Description: What format the uploaded events should be created in. This can be 'tar' or 'zip'
+
+Name: ZM_UPLOAD_ARCH_COMPRESS
+Value: no
+Description: Should archive files be compressed
+
+Name: ZM_UPLOAD_ARCH_ANALYSE
+Value: no
+Description: Whether to include the analysis files in the archive, bigger but slower
+
+Name: ZM_UPLOAD_FTP_HOST
+Value: 
+Description: The remote server to upload to
+
+Name: ZM_UPLOAD_FTP_USER
+Value: 
+Description: Your ftp username
+
+Name: ZM_UPLOAD_FTP_PASS
+Value: 
+Description: Your ftp password
+
+Name: ZM_UPLOAD_FTP_LOC_DIR
+Value: /tmp
+Description: The local directory in which to create upload files
+
+Name: ZM_UPLOAD_FTP_REM_DIR
+Value: 
+Description: The remote directory to upload to
+
+Name: ZM_UPLOAD_FTP_TIMEOUT
+Value: 120
+Description: How long (in seconds) we allow the transfer to take for each file
+
+Name: ZM_UPLOAD_FTP_PASSIVE
+Value: yes
+Description: Whether to use passive ftp
+
+Name: ZM_UPLOAD_FTP_DEBUG
+Value: yes
+Description: Whether to switch ftp debugging on
+
+Name: ZM_OPT_EMAIL
+Value: no
+Description: Should ZoneMinder email you details of events that match corresponding filters
+
+Name: ZM_EMAIL_ADDRESS
+Value: 
+Description: The email address to send matching event details to
+
+Name: ZM_EMAIL_FORMAT
+Value: zmconfig_eml.txt
+Description: The format of the email used to send matching event details
+
+Name: ZM_OPT_MESSAGE
+Value: no
+Description: Should ZoneMinder message you with details of events that match corresponding filters
+
+Name: ZM_MESSAGE_ADDRESS
+Value: 
+Description: The email address to send matching event details to
+
+Name: ZM_MESSAGE_FORMAT
+Value: zmconfig_msg.txt
+Description: The format of the message used to send matching event details
+
+Name: ZM_EMAIL_METHOD
+Value: sendmail
+Description: The method your machine uses to send email and messages
+
+Name: ZM_EMAIL_HOST
+Value: localhost
+Description: The host address of your SMTP mail server
+
+Name: ZM_FROM_EMAIL
+Value: 
+Description: The email address you wish your event notifications to originate from
+
+Name: ZM_URL
+Value: 
+Description: The URL of your ZoneMinder installation
+
+Name: ZM_MAX_RESTART_DELAY
+Value: 600
+Description: The maximum delay (in seconds) for daemon restart attempts.
+
+Name: ZM_WATCH_CHECK_INTERVAL
+Value: 10
+Description: How often to check the capture daemons have not locked up
+
+Name: ZM_WATCH_MAX_DELAY
+Value: 15
+Description: The maximum delay since the last captured image we will allow before restarting the capture daemons
+
+Name: ZM_FORCED_ALARM_SCORE
+Value: 255
+Description: Score to give forced alarms
+
+Name: ZM_BULK_FRAME_INTERVAL
+Value: 100
+Description: How often a bulk frame should be written to the database
+
+Name: ZM_EVENT_IMAGE_DIGITS
+Value: 3
+Description: How many significant digits are used in event image numbering
+
+Name: ZM_RECORD_EVENT_STATS
+Value: yes
+Description: Whether to record event statistical information, switch off if too slow
+
+Name: ZM_RECORD_DIAG_IMAGES
+Value: no
+Description: Whether to record intermediate alarm diagnostic images, can be very slow
+
+Name: ZM_CREATE_ANALYSIS_IMAGES
+Value: yes
+Description: Whether to create analysed alarm images with motion outlined
+
+Name: ZM_OPT_FRAME_SERVER
+Value: no
+Description: Should analysis farm out the writing of images to disk
+
+Name: ZM_FRAME_SOCKET_SIZE
+Value: 0
+Description: Specify the size of the frame server socket buffer if non-standard
+
+Name: ZM_OPT_CONTROL
+Value: no
+Description: Whether to support controllable (e.g. pan/tilt/zoom) cameras
+
+Name: ZM_CHECK_FOR_UPDATES
+Value: no
+Description: Whether to check with zoneminder.com for updated versions
+
+Name: ZM_WEB_REFRESH_METHOD
+Value: http
+Description: What method windows should use to refresh themselves, choose either javascript or http
+
+Name: ZM_WEB_DOUBLE_BUFFER
+Value: yes
+Description: Whether still images should be double buffered to avoid flickering
+
+Name: ZM_WEB_EVENTS_PER_PAGE
+Value: 25
+Description: How many events to list per page in paged mode
+
+Name: ZM_WEB_FRAMES_PER_LINE
+Value: 4
+Description: How many frames to list per line in the frame view
+
+Name: ZM_WEB_FRAME_LINES
+Value: 4
+Description: How many lines of frames to list in the frame view
+
+Name: ZM_WEB_LIST_THUMBS
+Value: no
+Description: Whether to display mini-thumbnails of event images in event lists
+
+Name: ZM_WEB_LIST_THUMB_WIDTH
+Value: 48
+Description: The width of the thumbnails that appear in the event lists
+
+Name: ZM_WEB_LIST_THUMB_HEIGHT
+Value: 0
+Description: The height of the thumbnails that appear in the event lists
+
+Name: ZM_WEB_H_REFRESH_MAIN
+Value: 300
+Description: How often (in seconds) the main console window should refresh itself
+
+Name: ZM_WEB_H_REFRESH_CYCLE
+Value: 10
+Description: How often (in seconds) the cycle watch window swaps to the next monitor
+
+Name: ZM_WEB_H_REFRESH_IMAGE
+Value: 5
+Description: How often (in seconds) the watched image is refreshed (if not streaming)
+
+Name: ZM_WEB_H_REFRESH_STATUS
+Value: 3
+Description: How often (in seconds) the status frame refreshes itself in the watch window
+
+Name: ZM_WEB_H_REFRESH_EVENTS
+Value: 30
+Description: How often (in seconds) the event listing is refreshed in the watch window
+
+Name: ZM_WEB_H_DEFAULT_SCALE
+Value: 100
+Description: What the default scaling factor applied to 'live' or 'event' views is (%)
+
+Name: ZM_WEB_H_DEFAULT_RATE
+Value: 100
+Description: What the default replay rate factor applied to 'event' views is (%)
+
+Name: ZM_WEB_H_VIDEO_BITRATE
+Value: 150000
+Description: What the bitrate of the video encoded stream should be set to
+
+Name: ZM_WEB_H_VIDEO_MAXFPS
+Value: 25
+Description: What the maximum frame rate for streamed video should be
+
+Name: ZM_WEB_H_IMAGE_SCALING
+Value: 1
+Description: How to scale thumbnails in events, bandwidth versus cpu in rescaling
+
+Name: ZM_WEB_M_REFRESH_MAIN
+Value: 300
+Description: How often (in seconds) the main console window should refresh itself
+
+Name: ZM_WEB_M_REFRESH_CYCLE
+Value: 20
+Description: How often (in seconds) the cycle watch window swaps to the next monitor
+
+Name: ZM_WEB_M_REFRESH_IMAGE
+Value: 10
+Description: How often (in seconds) the watched image is refreshed (if not streaming)
+
+Name: ZM_WEB_M_REFRESH_STATUS
+Value: 5
+Description: How often (in seconds) the status frame refreshes itself in the watch window
+
+Name: ZM_WEB_M_REFRESH_EVENTS
+Value: 60
+Description: How often (in seconds) the event listing is refreshed in the watch window
+
+Name: ZM_WEB_M_DEFAULT_SCALE
+Value: 100
+Description: What the default scaling factor applied to 'live' or 'event' views is (%)
+
+Name: ZM_WEB_M_DEFAULT_RATE
+Value: 100
+Description: What the default replay rate factor applied to 'event' views is (%)
+
+Name: ZM_WEB_M_VIDEO_BITRATE
+Value: 75000
+Description: What the bitrate of the video encoded stream should be set to
+
+Name: ZM_WEB_M_VIDEO_MAXFPS
+Value: 10
+Description: What the maximum frame rate for streamed video should be
+
+Name: ZM_WEB_M_IMAGE_SCALING
+Value: 4
+Description: How to scale thumbnails in events, bandwidth versus cpu in rescaling
+
+Name: ZM_WEB_L_REFRESH_MAIN
+Value: 300
+Description: How often (in seconds) the main console window should refresh itself
+
+Name: ZM_WEB_L_REFRESH_CYCLE
+Value: 30
+Description: How often (in seconds) the cycle watch window swaps to the next monitor
+
+Name: ZM_WEB_L_REFRESH_IMAGE
+Value: 15
+Description: How often (in seconds) the watched image is refreshed (if not streaming)
+
+Name: ZM_WEB_L_REFRESH_STATUS
+Value: 10
+Description: How often (in seconds) the status frame refreshes itself in the watch window
+
+Name: ZM_WEB_L_REFRESH_EVENTS
+Value: 180
+Description: How often (in seconds) the event listing is refreshed in the watch window
+
+Name: ZM_WEB_L_DEFAULT_SCALE
+Value: 100
+Description: What the default scaling factor applied to 'live' or 'event' views is (%)
+
+Name: ZM_WEB_L_DEFAULT_RATE
+Value: 100
+Description: What the default replay rate factor applied to 'event' views is (%)
+
+Name: ZM_WEB_L_VIDEO_BITRATE
+Value: 25000
+Description: What the bitrate of the video encoded stream should be set to
+
+Name: ZM_WEB_L_VIDEO_MAXFPS
+Value: 5
+Description: What the maximum frame rate for streamed video should be
+
+Name: ZM_WEB_L_IMAGE_SCALING
+Value: 4
+Description: How to scale thumbnails in events, bandwidth versus cpu in rescaling
+
+Name: ZM_WEB_P_REFRESH_MAIN
+Value: 300
+Description: How often (in seconds) the main console window should refresh itself
+
+Name: ZM_WEB_P_REFRESH_IMAGE
+Value: 30
+Description: How often (in seconds) the watched image is refreshed
+
