@@ -1,0 +1,127 @@
+--- zm-1.21.0/scripts/zm.z.init	2004-02-15 22:07:01.000000000 +0300
++++ zm-1.21.0/scripts/zm.z	2005-04-09 22:45:15.668039106 +0400
+@@ -1,15 +1,103 @@
+ #!/bin/sh
+ # description: Control ZoneMinder as a Service
+-# chkconfig: 2345 99 99
++# chkconfig: 2345 99 01
+ 
+ # Source function library.
+ . /etc/rc.d/init.d/functions
+ 
+ prog=ZoneMinder
++ZM_VERSION="<from zmconfig>"
+ ZM_PATH_BIN="<from zmconfig>"
++ZM_CONFIG="<from zmconfig>"
+ command="$ZM_PATH_BIN/zmpkg.pl"
++[ -f $ZM_CONFIG ] && . $ZM_CONFIG
+ 
++checkdb() {
++	if [ "$ZM_DB_SERVER" = "" -o "$ZM_DB_NAME" = "" -o "$ZM_DB_USER" = "" -o "$ZM_DB_PASS" = "" ]; then
++		if [ "$ZM_DB_SERVER" != "" -a "$ZM_DB_NAME" != "" -a "$ZM_DB_USERA" != "" -a "$ZM_DB_PASSA" != "" ]; then
++			echo -n "Converting $ZM_CONFIG"
++			cp $ZM_CONFIG $ZM_CONFIG.old && \
++			cat $ZM_CONFIG.old | \
++				grep -v ZM_DB_USERB | \
++				grep -v ZM_DB_PASSB | \
++				sed -e 's/ZM_DB_USERA/ZM_DB_USER/' | \
++				sed -e 's/ZM_DB_PASSA/ZM_DB_PASS/' >$ZM_CONFIG && \
++			rm -f $ZM_CONFIG.old
++			RETVAL=$?
++			[ $RETVAL = 0 ] && echo_success
++			[ $RETVAL != 0 ] && echo_failure
++			echo
++		else
++			echo "In $ZM_CONFIG there should not be null values."
++			return 1
++		fi
++	fi
++	GetVer="select Value from Config where Name='ZM_DYN_CURR_VERSION'"
++	OLD_VERSION=`echo $GetVer | mysql -B -h $ZM_DB_SERVER -u $ZM_DB_USER -p$ZM_DB_PASS $ZM_DB_NAME | grep -v '^Value'`
++	RETVAL=$?
++	if [ $RETVAL != 0 ]; then
++		tbls=`mysql -h $ZM_DB_SERVER -u $ZM_DB_USER -p$ZM_DB_PASS -s -e 'show tables' $ZM_DB_NAME`
++		RETVAL=$?
++		if [ $RETVAL = 0 ]; then
++			echo -n "Initialize $prog database: "
++			echo tbls | grep Config >/dev/null 2>&1
++			RETVAL=$?
++			if [ $RETVAL != 0 ]; then
++				cat $ZM_PATH_BIN/../init/zmschema.sql | mysql -B -h $ZM_DB_SERVER -u $ZM_DB_USER -p$ZM_DB_PASS $ZM_DB_NAME
++				RETVAL=$?
++				[ $RETVAL = 0 ] && echo_success
++				[ $RETVAL != 0 ] && echo_failure
++				echo
++				return $RETVAL
++			fi
++			( cd $ZM_PATH_BIN/../init; perl zmoptions -f zmconfig.txt )
++			RETVAL=$?
++			[ $RETVAL = 0 ] && echo_success
++			[ $RETVAL != 0 ] && echo_failure
++			echo
++			return $RETVAL
++		else
++			echo "Don't access to ZoneMinder database. Run $ZM_PATH_BIN/zminit manually."
++			return $RETVAL
++		fi
++	else
++		[ "$ZM_VERSION" = "$OLD_VERSION" ] && return 0
++		echo -n "Upgrade $prog database: "
++		$ZM_PATH_BIN/../upgrade/zmdbupgrade && ( cd $ZM_PATH_BIN/../init; perl zmoptions -f zmconfig.txt )
++		RETVAL=$?
++		[ $RETVAL = 0 ] && echo_success
++		[ $RETVAL != 0 ] && echo_failure
++		echo
++		return $RETVAL
++	fi
++}
++loadcontrol() {
++	if [ -f $ZM_PATH_BIN/../init/zmcontrol.sql ]; then
++		CTRL=`echo "select Name from Controls where Name='pelco-d'" \
++			| mysql -B -h $ZM_DB_SERVER -u $ZM_DB_USER -p$ZM_DB_PASS $ZM_DB_NAME`
++		RETVAL=$?
++		if [ $RETVAL != 0 ]; then
++			echo -n "Check data for zm-control: "
++			echo_failure
++			echo
++			return $RETVAL
++		fi
++		if ! echo $CTRL | grep 'pelco-d' >/dev/null 2>&1 ; then
++			echo -n "Load data for zm-control: "
++			cat $ZM_PATH_BIN/../init/zmcontrol.sql \
++				| mysql -B -h $ZM_DB_SERVER -u $ZM_DB_USER -p$ZM_DB_PASS $ZM_DB_NAME
++			RETVAL=$?
++			[ $RETVAL = 0 ] && echo_success
++			[ $RETVAL != 0 ] && echo_failure
++			echo
++			return $RETVAL
++		fi
++	fi
++	return 0
++}
+ start() {
++	checkdb || return $?
++	loadcontrol || return $?
+ 	echo -n "Starting $prog: "
+ 	$command start
+ 	RETVAL=$?
+@@ -50,11 +138,18 @@
+ 	stop
+ 	start
+ 	;;
++'condrestart')
++	result=`$command status`
++	if [ "$result" = "running" ]; then
++		stop
++		start
++	fi
++	;;
+ 'status')
+ 	status
+ 	;;
+ *)
+-	echo "Usage: $0 { start | stop | restart | status }"
++	echo "Usage: $0 { start | stop | restart | condrestart | status }"
+ 	RETVAL=1
+ 	;;
+ esac

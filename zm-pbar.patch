@@ -1,0 +1,501 @@
+--- zm-1.21.0/db/zmschema.sql.z.pbar	2005-02-24 02:46:58.000000000 +0300
++++ zm-1.21.0/db/zmschema.sql.z	2005-04-05 18:07:29.000000000 +0400
+@@ -152,6 +152,7 @@
+   TrackDelay smallint(5) unsigned NOT NULL default '0',
+   ReturnLocation tinyint(3) NOT NULL default '-1',
+   ReturnDelay smallint(5) unsigned NOT NULL default '0',
++  PostEvent set('ProgressBar') NOT NULL default '',
+   PRIMARY KEY  (Id)
+ ) TYPE=MyISAM;
+ 
+--- zm-1.21.0/db/zmalter-1.20.1.sql.pbar	2005-04-08 17:00:07.804715207 +0400
++++ zm-1.21.0/db/zmalter-1.20.1.sql	2005-04-08 17:00:39.158232276 +0400
+@@ -11,6 +11,7 @@
+ alter table Monitors add column TrackDelay smallint(5) unsigned NOT NULL default '0';
+ alter table Monitors add column ReturnLocation tinyint(3) NOT NULL default '-1';
+ alter table Monitors add column ReturnDelay smallint(5) unsigned NOT NULL default '0';
++alter table Monitors add column PostEvent set('ProgressBar') NOT NULL default '';
+ 
+ --
+ -- Add new table `Controls`
+--- zm-1.21.0/src/Makefile.am.pbar	2005-01-19 02:57:30.000000000 +0300
++++ zm-1.21.0/src/Makefile.am	2005-04-05 18:07:29.000000000 +0400
+@@ -35,7 +35,8 @@
+ 	zm_jpeg.c \
+ 	zm_regexp.cpp \
+ 	zm_buffer.cpp \
+-	zm_debug.c
++	zm_debug.c \
++	zm_progress.cpp
+ 
+ zmc_SOURCES = zmc.cpp $(zm_SOURCES)
+ zma_SOURCES = zma.cpp $(zm_SOURCES)
+@@ -68,7 +69,8 @@
+ 	zm_jpeg.h \
+ 	zm_mpeg.h \
+ 	zm_regexp.h \
+-	zm_buffer.h
++	zm_buffer.h \
++	zm_progress.h
+ 
+ EXTRA_DIST = zm_config.h.z
+ 
+--- zm-1.21.0/src/zm_event.cpp.pbar	2005-02-24 17:40:00.000000000 +0300
++++ zm-1.21.0/src/zm_event.cpp	2005-04-05 18:07:29.000000000 +0400
+@@ -29,15 +29,16 @@
+ #include "zm_mpeg.h"
+ #include "zm_event.h"
+ #include "zm_monitor.h"
++#include "zm_progress.h"
+ 
+ #include "zmf.h"
+ 
+ bool Event::initialised = false;
+ bool Event::timestamp_on_capture;
+ int Event::bulk_frame_interval;
+-char Event::capture_file_format[PATH_MAX];
+-char Event::analyse_file_format[PATH_MAX];
+-char Event::general_file_format[PATH_MAX];
++char capture_file_format[PATH_MAX];
++char analyse_file_format[PATH_MAX];
++char general_file_format[PATH_MAX];
+ 
+ int Event::pre_alarm_count = 0;
+ Event::PreAlarmData Event::pre_alarm_data[MAX_PRE_ALARM_FRAMES] = { 0 };
+@@ -110,6 +111,8 @@
+ 		Error(( "Can't update event: %s", mysql_error( &dbconn ) ));
+ 		exit( mysql_errno( &dbconn ) );
+ 	}
++	if ( monitor->PostEventFunc( POST_EVENT_PROGRESSBAR ) && alarm_frames )
++		PostEventProgress( id );
+ }
+ 
+ int Event::sd = -1;
+--- zm-1.21.0/src/zm_event.h.pbar	2005-02-24 17:40:00.000000000 +0300
++++ zm-1.21.0/src/zm_event.h	2005-04-05 18:07:29.000000000 +0400
+@@ -38,6 +38,10 @@
+ 
+ #define MAX_PRE_ALARM_FRAMES	16 // Maximum number of prealarm frames that can be stored
+ 
++extern char		capture_file_format[PATH_MAX];
++extern char		analyse_file_format[PATH_MAX];
++extern char		general_file_format[PATH_MAX];
++
+ //
+ // Class describing events, i.e. captured periods of activity.
+ //
+@@ -47,9 +51,6 @@
+ 	static bool		initialised;
+ 	static bool		timestamp_on_capture;
+ 	static int		bulk_frame_interval;
+-	static char		capture_file_format[PATH_MAX];
+-	static char		analyse_file_format[PATH_MAX];
+-	static char		general_file_format[PATH_MAX];
+ 
+ protected:
+ 	static int		sd;
+--- zm-1.21.0/src/zm_monitor.cpp.pbar	2005-03-20 19:33:29.000000000 +0300
++++ zm-1.21.0/src/zm_monitor.cpp	2005-04-05 18:10:04.000000000 +0400
+@@ -1013,11 +1013,11 @@
+ 	static char sql[BUFSIZ];
+ 	if ( device == -1 )
+ 	{
+-		strncpy( sql, "select Id, Name, Function+0, Device, Channel, Format, Width, Height, Palette, Orientation+0, Brightness, Contrast, Hue, Colour, EventPrefix, LabelFormat, LabelX, LabelY, ImageBufferCount, WarmupCount, PreEventCount, PostEventCount, AlarmFrameCount, SectionLength, FrameSkip, MaxFPS, FPSReportInterval, RefBlendPerc, TrackMotion from Monitors where Function != 'None' and Type = 'Local'", sizeof(sql) );
++		strncpy( sql, "select Id, Name, Function+0, Device, Channel, Format, Width, Height, Palette, Orientation+0, Brightness, Contrast, Hue, Colour, EventPrefix, LabelFormat, LabelX, LabelY, ImageBufferCount, WarmupCount, PreEventCount, PostEventCount, AlarmFrameCount, SectionLength, FrameSkip, MaxFPS, FPSReportInterval, RefBlendPerc, TrackMotion, PostEvent+0 from Monitors where Function != 'None' and Type = 'Local'", sizeof(sql) );
+ 	}
+ 	else
+ 	{
+-		snprintf( sql, sizeof(sql), "select Id, Name, Function+0, Device, Channel, Format, Width, Height, Palette, Orientation+0, Brightness, Contrast, Hue, Colour, EventPrefix, LabelFormat, LabelX, LabelY, ImageBufferCount, WarmupCount, PreEventCount, PostEventCount, AlarmFrameCount, SectionLength, FrameSkip, MaxFPS, FPSReportInterval, RefBlendPerc, TrackMotion from Monitors where Function != 'None' and Type = 'Local' and Device = %d", device );
++		snprintf( sql, sizeof(sql), "select Id, Name, Function+0, Device, Channel, Format, Width, Height, Palette, Orientation+0, Brightness, Contrast, Hue, Colour, EventPrefix, LabelFormat, LabelX, LabelY, ImageBufferCount, WarmupCount, PreEventCount, PostEventCount, AlarmFrameCount, SectionLength, FrameSkip, MaxFPS, FPSReportInterval, RefBlendPerc, TrackMotion, PostEvent+0 from Monitors where Function != 'None' and Type = 'Local' and Device = %d", device );
+ 	}
+ 	if ( mysql_query( &dbconn, sql ) )
+ 	{
+@@ -1068,6 +1068,7 @@
+ 			atoi(dbrow[28]), // TrackMotion
+ 			purpose
+ 		);
++		monitors[i]->PostEventFuncLoad( atoi(dbrow[29]) );
+ 		Zone **zones = 0;
+ 		int n_zones = Zone::Load( monitors[i], zones );
+ 		monitors[i]->AddZones( n_zones, zones );
+@@ -1089,11 +1090,11 @@
+ 	static char sql[BUFSIZ];
+ 	if ( !host )
+ 	{
+-		strncpy( sql, "select Id, Name, Function+0, Host, Port, Path, Width, Height, Palette, Orientation+0, Brightness, Contrast, Hue, Colour, EventPrefix, LabelFormat, LabelX, LabelY, ImageBufferCount, WarmupCount, PreEventCount, PostEventCount, AlarmFrameCount, SectionLength, FrameSkip, MaxFPS, FPSReportInterval, RefBlendPerc, TrackMotion from Monitors where Function != 'None' and Type = 'Remote'", sizeof(sql) );
++		strncpy( sql, "select Id, Name, Function+0, Host, Port, Path, Width, Height, Palette, Orientation+0, Brightness, Contrast, Hue, Colour, EventPrefix, LabelFormat, LabelX, LabelY, ImageBufferCount, WarmupCount, PreEventCount, PostEventCount, AlarmFrameCount, SectionLength, FrameSkip, MaxFPS, FPSReportInterval, RefBlendPerc, TrackMotion, PostEvent+0 from Monitors where Function != 'None' and Type = 'Remote'", sizeof(sql) );
+ 	}
+ 	else
+ 	{
+-		snprintf( sql, sizeof(sql), "select Id, Name, Function+0, Host, Port, Path, Width, Height, Palette, Orientation+0, Brightness, Contrast, Hue, Colour, EventPrefix, LabelFormat, LabelX, LabelY, ImageBufferCount, WarmupCount, PreEventCount, PostEventCount, AlarmFrameCount, SectionLength, FrameSkip, MaxFPS, FPSReportInterval, RefBlendPerc, TrackMotion from Monitors where Function != 'None' and Type = 'Remote' and Host = '%s' and Port = '%s' and Path = '%s'", host, port, path );
++		snprintf( sql, sizeof(sql), "select Id, Name, Function+0, Host, Port, Path, Width, Height, Palette, Orientation+0, Brightness, Contrast, Hue, Colour, EventPrefix, LabelFormat, LabelX, LabelY, ImageBufferCount, WarmupCount, PreEventCount, PostEventCount, AlarmFrameCount, SectionLength, FrameSkip, MaxFPS, FPSReportInterval, RefBlendPerc, TrackMotion, PostEvent+0 from Monitors where Function != 'None' and Type = 'Remote' and Host = '%s' and Port = '%s' and Path = '%s'", host, port, path );
+ 	}
+ 	if ( mysql_query( &dbconn, sql ) )
+ 	{
+@@ -1144,6 +1145,7 @@
+ 			atoi(dbrow[28]), // TrackMotion
+ 			purpose
+ 		);
++		monitors[i]->PostEventFuncLoad( atoi(dbrow[29]) );
+ 		Zone **zones = 0;
+ 		int n_zones = Zone::Load( monitors[i], zones );
+ 		monitors[i]->AddZones( n_zones, zones );
+@@ -1163,7 +1165,7 @@
+ Monitor *Monitor::Load( int id, bool load_zones, Purpose purpose )
+ {
+ 	static char sql[BUFSIZ];
+-	snprintf( sql, sizeof(sql), "select Id, Name, Type, Function+0, Device, Channel, Format, Host, Port, Path, Width, Height, Palette, Orientation+0, Brightness, Contrast, Hue, Colour, EventPrefix, LabelFormat, LabelX, LabelY, ImageBufferCount, WarmupCount, PreEventCount, PostEventCount, AlarmFrameCount, SectionLength, FrameSkip, MaxFPS, FPSReportInterval, RefBlendPerc, TrackMotion from Monitors where Id = %d", id );
++	snprintf( sql, sizeof(sql), "select Id, Name, Type, Function+0, Device, Channel, Format, Host, Port, Path, Width, Height, Palette, Orientation+0, Brightness, Contrast, Hue, Colour, EventPrefix, LabelFormat, LabelX, LabelY, ImageBufferCount, WarmupCount, PreEventCount, PostEventCount, AlarmFrameCount, SectionLength, FrameSkip, MaxFPS, FPSReportInterval, RefBlendPerc, TrackMotion, PostEvent+0 from Monitors where Id = %d", id );
+ 	if ( mysql_query( &dbconn, sql ) )
+ 	{
+ 		Error(( "Can't run query: %s", mysql_error( &dbconn ) ));
+@@ -1249,6 +1251,7 @@
+ 				purpose
+ 			);
+ 		}
++		monitor->PostEventFuncLoad( atoi(dbrow[33]) );
+ 		int n_zones = 0;
+ 		if ( load_zones )
+ 		{
+--- zm-1.21.0/src/zm_monitor.h.pbar	2005-02-24 17:40:01.000000000 +0300
++++ zm-1.21.0/src/zm_monitor.h	2005-04-05 18:07:29.000000000 +0400
+@@ -124,6 +124,8 @@
+ 	time_t			last_fps_time;
+ 	int				shmid;
+ 
++	int			post_event_func;	// What to do after event
++
+ 	typedef struct Snapshot
+ 	{
+ 		struct timeval	*timestamp;
+@@ -326,6 +328,14 @@
+ #if HAVE_LIBAVCODEC
+ 	void StreamMpeg( const char *format, int scale=100, int maxfps=10, int bitrate=100000 );
+ #endif // HAVE_LIBAVCODEC
++	inline void PostEventFuncLoad( int value )
++	{
++		post_event_func = value;
++	}
++	inline int PostEventFunc( int func )
++	{
++		return post_event_func & func;
++	}
+ };
+ 
+ #endif // ZM_MONITOR_H
+--- zm-1.21.0/src/zm_progress.cpp.pbar	2005-04-05 18:07:29.000000000 +0400
++++ zm-1.21.0/src/zm_progress.cpp	2005-04-08 15:03:31.117560512 +0400
+@@ -0,0 +1,183 @@
++//
++// ZoneMinder Progress Bar Implementation, $Date$, $Revision$
++// Copyright (C) 2005  Serg Oskin
++// 
++// This program is free software; you can redistribute it and/or
++// modify it under the terms of the GNU General Public License
++// as published by the Free Software Foundation; either version 2
++// of the License, or (at your option) any later version.
++// 
++// This program is distributed in the hope that it will be useful,
++// but WITHOUT ANY WARRANTY; without even the implied warranty of
++// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
++// GNU General Public License for more details.
++// 
++// You should have received a copy of the GNU General Public License
++// along with this program; if not, write to the Free Software
++// Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
++// 
++
++#include <sys/types.h>
++#include <sys/stat.h>
++#include <sys/wait.h>
++#include <unistd.h>
++#include "zm.h"
++#include "zm_db.h"
++#include "zm_event.h"
++#include "zm_image.h"
++#include "zm_progress.h"
++
++typedef struct {
++	int id;
++	int score;
++} frame_t;
++
++void MakeProgressBar( int EventId )
++{
++	static char sql[BUFSIZ];
++	snprintf( sql, sizeof(sql), "select E.Name, M.Id, M.Name from Events E, Monitors M where E.Id = %d and M.Id = E.MonitorId", EventId );
++	if ( mysql_query( &dbconn, sql ) )
++	{
++		Error(( "Can't run query: %s", mysql_error( &dbconn ) ));
++		exit( mysql_errno( &dbconn ) );
++	}
++	MYSQL_RES *result = mysql_store_result( &dbconn );
++	if ( !result )
++	{
++		Error(( "Can't use query result: %s", mysql_error( &dbconn ) ));
++		exit( mysql_errno( &dbconn ) );
++	}
++	if ( mysql_num_rows( result ) == 0 )
++	{
++		Error(( "Can't find event %d", EventId ));
++		mysql_free_result( result );
++		exit( 1 );
++	}
++	MYSQL_ROW dbrow = mysql_fetch_row( result );
++	char *EventName = dbrow[0];
++	int MonitorId = atoi(dbrow[1]);
++	char *MonitorName = dbrow[2];
++	mysql_free_result( result );
++
++	static char event_path[PATH_MAX];
++	snprintf( event_path, sizeof(event_path), "%s/%s/%d/%d", ZM_PATH_WEB, (const char *)config.Item( ZM_DIR_EVENTS ), MonitorId, EventId );
++	struct stat st;
++	int ret = 0;
++	ret = stat( event_path, &st );
++	if ( ( ret == 0 ) && ( st.st_mode & S_IFDIR == 0 ) )
++	{
++		ret = -1;
++		errno = ENOENT;
++	}
++	if ( ret )	
++	{
++		Error(( "Can't find event %d: %s", strerror( errno ) ));
++		exit( errno );
++	}
++
++	snprintf( sql, sizeof(sql), "select FrameId, Score from Frames where EventId = %d order by FrameId", EventId );
++	if ( mysql_query( &dbconn, sql ) )
++	{
++		Error(( "Can't run query: %s", mysql_error( &dbconn ) ));
++		exit( mysql_errno( &dbconn ) );
++	}
++	result = mysql_store_result( &dbconn );
++	if ( !result )
++	{
++		Error(( "Can't use query result: %s", mysql_error( &dbconn ) ));
++		exit( mysql_errno( &dbconn ) );
++	}
++	int AllFrames;
++	if ( (AllFrames = mysql_num_rows( result )) == 0 )
++	{
++		mysql_free_result( result );
++		Error(( "No frames for event %d.", EventId ));
++		exit( ENOENT );
++	}
++	frame_t *Frames = new frame_t[AllFrames];
++	for (int i = 0; dbrow = mysql_fetch_row( result ); i++ )
++	{
++		Frames[i].id = atoi(dbrow[0]);
++		Frames[i].score = atoi(dbrow[1]);
++	}
++	mysql_free_result( result );
++
++	static char event_file[PATH_MAX], n_event_file[PATH_MAX];
++	JSAMPLE *bar = NULL, *str;
++	unsigned int width = 0, colours = 0, wc = 0, posc = 0, n_height;
++	for ( int i = 0; i < AllFrames; i++ )
++	{
++		snprintf( event_file, sizeof(event_file), capture_file_format, event_path, Frames[i].id );
++		strncpy( n_event_file, event_file, sizeof(n_event_file) );
++		strncat( n_event_file, ".new", sizeof(n_event_file) );
++		Image *frame = new Image( event_file );
++		n_height = frame->Height() + PROGRESS_BAR_DELIMITER + PROGRESS_BAR_HEIGHT;
++		Image *n_frame = new Image( frame->Width(), n_height, frame->Colours() );
++		memcpy( n_frame->Buffer(), frame->Buffer(), frame->Size() );
++		if ( ( width != frame->Width() ) || (colours != frame->Colours() ) )
++		{
++			width = frame->Width();
++			colours = frame->Colours();
++			wc = width * colours;
++			if ( bar ) delete[] bar;
++			bar = new JSAMPLE[wc];
++		}
++		posc = width * Frames[i].id / (AllFrames?AllFrames:1) * colours;
++		memset( bar, PROGRESS_BAR_COLOUR_USED, posc );
++		memset( &bar[posc+1], PROGRESS_BAR_COLOUR_FREE, wc-posc );
++		for ( int j = 0; j < AllFrames; j++ )
++		{
++			if ( Frames[j].score > 0 )
++			{
++				posc = width * Frames[j].id / (AllFrames?AllFrames:1) * colours;
++				memset( &bar[posc], (Frames[j].id>=Frames[i].id?PROGRESS_BAR_COLOUR_USED:PROGRESS_BAR_COLOUR_FREE), colours );
++			}
++		}
++		str = n_frame->Buffer(); str = &str[frame->Size()];
++		memset( str, PROGRESS_BAR_COLOUR_FREE, wc * PROGRESS_BAR_DELIMITER );
++		str = &str[wc * PROGRESS_BAR_DELIMITER];
++		for ( int y = 0; y < PROGRESS_BAR_HEIGHT; y++ )
++		{
++			memcpy( &str[wc*y], bar, wc );
++		}
++		n_frame->WriteJpeg( n_event_file );
++		if ( rename( n_event_file, event_file ) < 0 )
++			Warning(( "Can't rename %s to %s: %s", n_event_file, event_file, strerror(errno) ));
++		delete n_frame;
++		delete frame;
++	}
++	delete[] bar;
++	delete[] Frames;
++}
++
++void PostEventProgress( int event_id )
++{
++	int pid, st;
++
++	if (( pid = fork() ) < 0 )
++	{
++		Error(( "Can't make progress bar: fork - %s", strerror(errno) ));
++		return;
++	}
++	if ( pid ) {
++		waitpid( pid, &st, WUNTRACED );
++		return;
++	} else {
++		char dbg_str[30];
++		snprintf( dbg_str, sizeof(dbg_str), "%d", event_id );
++		zmDbgInit( "ProgressBar", dbg_str, 0 );
++		if ( daemon( 0, 1 ) == -1 )
++		{
++			Error(( "daemon error: %s", strerror(errno) ));
++			exit( 1 );
++		}
++		if ( nice( 10 ) == -1 )
++		{
++			Error(( "nice error: %s", strerror(errno) ));
++			exit( 1 );
++		}
++		zmDbConnect();
++		MakeProgressBar( event_id );
++		exit( 0 );
++	}
++}
+--- zm-1.21.0/src/zm_progress.h.pbar	2005-04-05 18:07:29.000000000 +0400
++++ zm-1.21.0/src/zm_progress.h	2005-04-05 18:07:29.000000000 +0400
+@@ -0,0 +1,34 @@
++//
++// ZoneMinder Progress Bar Interface, $Date$, $Revision$
++// Copyright (C) 2005  Serg Oskin
++// 
++// This program is free software; you can redistribute it and/or
++// modify it under the terms of the GNU General Public License
++// as published by the Free Software Foundation; either version 2
++// of the License, or (at your option) any later version.
++// 
++// This program is distributed in the hope that it will be useful,
++// but WITHOUT ANY WARRANTY; without even the implied warranty of
++// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
++// GNU General Public License for more details.
++// 
++// You should have received a copy of the GNU General Public License
++// along with this program; if not, write to the Free Software
++// Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
++// 
++
++#ifndef ZM_PROGRESS_H
++#define ZM_PROGRESS_H
++
++#include "zm_rgb.h"
++
++#define POST_EVENT_PROGRESSBAR 1
++
++#define PROGRESS_BAR_DELIMITER 1
++#define PROGRESS_BAR_HEIGHT 3
++#define PROGRESS_BAR_COLOUR_USED BLACK
++#define PROGRESS_BAR_COLOUR_FREE WHITE
++
++extern void PostEventProgress( int event_id );
++
++#endif // ZM_PROGRESS_H
+--- zm-1.21.0/web/zm_actions.php.pbar	2005-04-06 18:11:18.000000000 +0400
++++ zm-1.21.0/web/zm_actions.php	2005-04-06 19:32:24.000000000 +0400
+@@ -200,10 +200,23 @@
+ 				}
+ 			}
+ 
++			$new_monitor['PostEvent'] = array();
++			if ( count( $post_event ) )
++			{
++				foreach ( $post_event as $name=>$value )
++				{
++					if ( $value )
++					{
++						$new_monitor['PostEvent'][] = $name;
++					}
++				}
++			}
++
+ 			// Define a field type for anything that's not simple text equivalent
+ 			$types = array(
+ 				'Triggers' => 'set',
+ 				'Controllable' => 'toggle',
++				'PostEvent' => 'set',
+ 			);
+ 
+ 			$columns = getTableColumns( 'Monitors' );
+--- zm-1.21.0/web/zm_html_view_monitor.php.pbar	2005-04-06 17:04:41.000000000 +0400
++++ zm-1.21.0/web/zm_html_view_monitor.php	2005-04-06 19:07:03.000000000 +0400
+@@ -95,7 +95,9 @@
+ 	$monitor['FPSReportInterval'] = 1000;
+ 	$monitor['RefBlendPerc'] = 10;
+ 	$monitor['Triggers'] = "";
++	$monitor['PostEvent'] = "";
+ }
++$monitor['PostEvent'] = split( ',', isset($monitor['PostEvent'])?$monitor['PostEvent']:"" );
+ if ( !isset( $new_monitor ) )
+ {
+ 	$new_monitor = $monitor;
+@@ -105,6 +107,18 @@
+ $local_palettes = array( $zmSlangGrey=>1, "RGB24"=>4, "RGB565"=>3, "RGB555"=>6, "YUV422"=>7, "YUYV"=>8, "YUV422P"=>13, "YUV420P"=>15 );
+ $remote_palettes = array( $zmSlang8BitGrey=>1, $zmSlang24BitColour=>4 );
+ $orientations = array( $zmSlangNormal=>0, $zmSlangRotateRight=>90, $zmSlangInverted=>180, $zmSlangRotateLeft=>270 );
++$post_event = array();
++foreach ( array( "ProgressBar" ) as $opt )
++{
++	if ( in_array( $opt, $monitor['PostEvent'] ) )
++	{
++		$post_event[$opt] = 1;
++	}
++	else
++	{
++		$post_event[$opt] = 0;
++	}
++}
+ 
+ ?>
+ <!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+@@ -324,6 +338,7 @@
+ <input type="hidden" name="new_monitor[MaxFPS]" value="<?= $new_monitor['MaxFPS'] ?>">
+ <input type="hidden" name="new_monitor[FPSReportInterval]" value="<?= $new_monitor['FPSReportInterval'] ?>">
+ <input type="hidden" name="new_monitor[RefBlendPerc]" value="<?= $new_monitor['RefBlendPerc'] ?>">
++<input type="hidden" name="post_event[ProgressBar]" value="<?= $post_event['ProgressBar'] ?>">
+ <?php
+ }
+ if ( ZM_OPT_X10 && $tab != 'x10' )
+@@ -475,6 +490,7 @@
+ <tr><td align="left" class="text"><?= $zmSlangMaximumFPS ?></td><td align="left" class="text"><input type="text" name="new_monitor[MaxFPS]" value="<?= $new_monitor['MaxFPS'] ?>" size="6" class="form"></td></tr>
+ <tr><td align="left" class="text"><?= $zmSlangFPSReportInterval ?></td><td align="left" class="text"><input type="text" name="new_monitor[FPSReportInterval]" value="<?= $new_monitor['FPSReportInterval'] ?>" size="6" class="form"></td></tr>
+ <tr><td align="left" class="text"><?= $zmSlangRefImageBlendPct ?></td><td align="left" class="text"><input type="text" name="new_monitor[RefBlendPerc]" value="<?= $new_monitor['RefBlendPerc'] ?>" size="4" class="form"></td></tr>
++<tr><td align="left" class="text"><?= $zmSlangShowProgressBar ?></td><td align="left" class="text"><input type="checkbox" name="post_event[ProgressBar]" value="1" class="form-noborder"<?php if ( $post_event['ProgressBar'] ) { ?> checked<?php } ?>></td></tr>
+ <?php
+ 		break;
+ 	}
+--- zm-1.21.0/web/zm_lang_en_gb.php.pbar	2005-03-16 20:38:25.000000000 +0300
++++ zm-1.21.0/web/zm_lang_en_gb.php	2005-04-05 18:07:29.000000000 +0400
+@@ -438,6 +438,7 @@
+ $zmSlangSet                  = 'Set';
+ $zmSlangSettings             = 'Settings';
+ $zmSlangShowFilterWindow     = 'ShowFilterWindow';
++$zmSlangShowProgressBar      = 'Show Progress Bar';
+ $zmSlangSleep                = 'Sleep';
+ $zmSlangSortAsc              = 'Asc';
+ $zmSlangSortBy               = 'Sort by';
+--- zm-1.21.0/web/zm_lang_ru_ru.php.pbar	2005-04-05 18:07:29.000000000 +0400
++++ zm-1.21.0/web/zm_lang_ru_ru.php	2005-04-05 18:07:29.000000000 +0400
+@@ -450,6 +450,7 @@
+ $zmSlangSet                  = 'Set';
+ $zmSlangSettings             = 'Настройки';
+ $zmSlangShowFilterWindow     = 'Показать окно фильтра';
++$zmSlangShowProgressBar      = 'Show Progress Bar';
+ $zmSlangSleep                = 'Sleep';
+ $zmSlangSortAsc              = 'Asc';
+ $zmSlangSortBy               = 'Sort by';

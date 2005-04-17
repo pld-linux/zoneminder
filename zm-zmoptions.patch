@@ -1,0 +1,421 @@
+--- zm-1.21.0/zmoptions.orig	2005-03-24 18:14:39.139345411 +0300
++++ zm-1.21.0/zmoptions	2005-03-24 18:17:30.804370817 +0300
+@@ -35,23 +35,17 @@
+ sub Usage
+ {
+ 	print( "
+-Usage: zmconfig.pl [-f <config file>,--file=<config file>] [-(no)database] [--(no)interactive] [--(no)reprocess]
++Usage: zmoptions [-f <config file>,--file=<config file>]
+ Parameters are :-
+ -f <config_file>, --file=<config_file> - Use a configuration file other than the default zmconfig.txt
+--(no)d, --(no)database                 - Whether the database has already been created, on by default 
+--(no)i, --(no)interactive              - Whether to include interactive configuration, on by default 
+--(no)r, --(no)reprocess                - Whether to reprocess files, on by default
+ ");
+ 	exit( -1 );
+ }
+ 
++my $ZM_CONFIG = "/etc/zm.conf";
+ my $config_file = "zmconfig.txt";
+-my $config_header = "src/zm_config_defines.h";
+-my $database = !undef;
+-my $interactive = !undef;
+-my $reprocess = !undef;
+ 
+-if ( !GetOptions( 'file=s'=>\$config_file, 'database!'=>\$database, 'interactive!'=>\$interactive, 'reprocess!'=>\$reprocess ) )
++if ( !GetOptions( 'file=s'=>\$config_file ) )
+ {
+ 	Usage();
+ }
+@@ -1353,140 +1347,33 @@
+ 	}
+ }
+ 
+-my $first_run = !(-s $config_file);
+-
+-my $file_option_count = 0;
+-if ( !$first_run || !$database )
++sub readZM_CONFIG
+ {
+-	$file_option_count = loadOptionsFromFile();
+-}
+-my $db_option_count = 0;
+-if ( $database )
+-{
+-	$db_option_count = loadOptionsFromDB();
+-}
+-
+-if ( !$interactive && !$file_option_count && !$db_option_count )
+-{
+-	print( "Warning: Non-interative mode being used with no existing configuration information.\n" );
+-	print( "         Using only default values which may not be appropriate or even work.\n" );
+-}
+-
+-if ( $interactive )
+-{
+-	print( "
+-Welcome to the ZoneMinder interactive configuration utility.
+-
+-You will now be prompted to enter information allowing ZoneMinder to
+-be configured for your system. Entering '?' at most prompts will print
+-further information about each option if you are not sure what to put.
+-You can also type 'q' at any time to exit without saving or 'x' to 
+-exit with the remaining options set to their previous or default 
+-values.
+-
+-Press enter to continue: " );
+-	my $input = <>;
+-	print( "\n" );
+-
+-	foreach my $option ( @options )
+-	{
+-		next if ( $option->{readonly} );
+-		next if ( @match_options && !grep { $option->{name} =~ /^$_$/ } @match_options );
+-	
+-		if ( my $requires = $option->{requires} )
+-		{
+-			my $do_option;
+-			foreach my $require ( @$requires )
+-			{
+-				if ( my $require_option = $options_hash{$require->{name}} )
+-				{
+-					if ( $require_option->{value} =~ /^$require->{value}/ )
+-					{
+-						$do_option = !undef;
+-						last;
+-					}
+-				}
+-			}
+-			next if ( !$do_option );
+-		}
+-		if ( $option->{introduction} )
+-		{
+-			print( '-'x76 . "\n" );
+-			print( breaktext( $option->{introduction} ) );
+-			print( '-'x76 . "\n" );
+-		}
+-		my $type = $option->{type};
+-		if ( !$type )
++	print( "Loading config from '$ZM_CONFIG'\n" );
++	open( CONFIG, "<".$ZM_CONFIG ) or die( "Can't open config file: $!" );
++	foreach my $str ( <CONFIG> )
++	{
++		next if ( $str =~ /^\s*$/ );
++		next if ( $str =~ /^\s*#/ );
++		next if( !( my( $name, $value ) = $str =~ /^\s*([^=\s]+)\s*=\s*([^=\s]+)\s*$/) );
++		$name =~ tr/a-z/A-Z/;
++		if (( $name eq 'ZM_DB_SERVER' ) ||
++			( $name eq 'ZM_DB_NAME' ) ||
++			( $name eq 'ZM_DB_USER' ) ||
++			( $name eq 'ZM_DB_PASS' ))
+ 		{
+-			warn( "No type found" );
+-			$type = $types{string};
+-		}
+-		while( 1 )
+-		{
+-			print( "$option->{description} ($type->{hint}) " );
+-			print( "[$option->{value}] " ) if ( defined($option->{value}) );
+-			print( ": " );
+-			my $new_value = <>;
+-			chomp( $new_value );
+-			if ( defined($new_value) )
+-			{
+-				if ( $new_value =~ /^\?/ )
+-				{
+-					if ( $option->{help} )
+-					{
+-						print( "\n".breaktext($option->{help})."\n" );
+-					}
+-					else
+-					{
+-						print( "Sorry, no help is available for this item\n" );
+-					}
+-					next;
+-				}
+-				elsif ( $new_value eq 'x' )
+-				{
+-					print( "Using existing values for remaining options\n" );
+-					goto FINISHED;
+-				}
+-				elsif ( $new_value eq 'q' )
+-				{
+-					print( "Exiting\n" );
+-					exit( 0 );
+-				}
+-				elsif ( $new_value eq '' )
+-				{
+-					if ( $option->{value} )
+-					{
+-						last;
+-					}
+-				}
+-				#print( "N:$new_value\n" );
+-				my $pattern = $type->{pattern};
+-				if ( $new_value !~ $pattern || ( $type->{check} && !eval( $type->{check} ) ) )
+-				{
+-					print( "Invalid input, please re-enter or type '?' for help.\n" );
+-					next;
+-				}
+-				#print( "U:$use_value\n" );
+-				my $format = $type->{format};
+-				$option->{value} = eval( $format );
+-			}
+-			last;
+-		}
+-		if ( my $check = $option->{check} )
+-		{
+-			if ( my $result = &$check( $option->{value} ) )
+-			{
+-				# All ok
+-				print( "Exists\n" );
+-			}
+-			else
+-			{
+-				print( "Missing\n" );
+-			}
++			my $option = $options_hash{$name};
++			$option->{value} = $value;
+ 		}
+ 	}
++	close( CONFIG );
+ }
+-FINISHED:
++
++my $file_option_count = 0;
++$file_option_count = loadOptionsFromFile();
++readZM_CONFIG();
++my $db_option_count = 0;
++$db_option_count = loadOptionsFromDB();
+ 
+ # Create option ids
+ my $option_id = 0;
+@@ -1497,26 +1384,8 @@
+ 	$option->{id} = $option_id++;
+ }
+ 
+-saveOptionsToFile();
+ saveOptionsToDB();
+ 
+-sub saveOptionsToFile
+-{
+-	print( "Saving config to '$config_file'\n" );
+-	open( CONFIG, ">$config_file" ) or die( "Can't open options file: $!" );
+-	foreach my $option ( @options )
+-	{
+-		next if ( $option->{readonly} );
+-		next if ( $option->{type} == $types{text} );
+-		print( CONFIG "Name: $option->{name}\n" );
+-		print( CONFIG "Value: $option->{value}\n" );
+-		print( CONFIG "Description: $option->{description}\n" );
+-		print( CONFIG "\n" );
+-	}
+-	chmod( 0600, $config_file ) or die( "Can't chmod '$config_file': $!" );
+-	close( CONFIG );
+-}
+-
+ sub saveOptionsToDB
+ {
+ 	print( "Saving config to DB\n" );
+@@ -1524,14 +1393,7 @@
+ 
+ 	if ( !$dbh )
+ 	{
+-		if ( $first_run )
+-		{
+-			print( "Warning: unable to save options to database. Ignore if database not created yet\n" );
+-		}
+-		else
+-		{
+-			print( "Error: unable to save options to database: $DBI::errstr\n" );
+-		}
++		print( "Error: unable to save options to database: $DBI::errstr\n" );
+ 		return( 0 );
+ 	}
+ 	my $sql = "delete from Config";
+@@ -1620,14 +1482,7 @@
+ 	
+ 	if ( !$dbh )
+ 	{
+-		if ( $first_run )
+-		{
+-			print( "Warning: unable to load options from database. Ignore if database not created yet\n" );
+-		}
+-		else
+-		{
+-			print( "Error: unable to load options from database: $DBI::errstr\n" );
+-		}
++		print( "Error: unable to load options from database: $DBI::errstr\n" );
+ 		return( 0 );
+ 	}
+ 	my $sql = "select * from Config";
+@@ -1673,169 +1528,3 @@
+ 	( my $broken_text = $text ) =~ s/(.{1,76})(?:\s|$)/$1\n/g;
+ 	return( $broken_text );
+ }
+-
+-if ( $reprocess )
+-{
+-	print( "Generating '$config_header'\n" );
+-	open( CFG_HDR_FILE, ">$config_header" ) or die( "Can't open '$config_header' for writing" );
+-	print( CFG_HDR_FILE "// The file is autogenerated by zmconfig.pl\n" );
+-	print( CFG_HDR_FILE "// Do not edit this file as any changes will be overwritten\n\n" );
+-	my $last_id = 0;
+-	foreach my $option ( @options )
+-	{
+-		next if ( !defined($option->{id}) );
+-		printf( CFG_HDR_FILE "#define $option->{name} $option->{id}\n" );
+-		$last_id = $option->{id};
+-	}
+-	printf( CFG_HDR_FILE "#define ZM_MAX_CFG_ID $last_id\n" );
+-	close( CFG_HDR_FILE );
+-
+-	my @config_files = qw( zm.conf src/zm_config.h web/zm_config.php scripts/zmdc.pl scripts/zmwatch.pl scripts/zmaudit.pl scripts/zmfilter.pl scripts/zmtrigger.pl scripts/zmx10.pl scripts/zmpkg.pl scripts/zmupdate.pl scripts/zmvideo.pl scripts/zmcontrol-pelco-d.pl scripts/zmcontrol-visca.pl scripts/zmcontrol-kx-hcm10.pl scripts/zmtrack.pl scripts/zm db/zmschema.sql );
+-
+-	foreach my $config_file ( @config_files )
+-	{
+-		print( "Processing '$config_file'\n" );
+-		local $/ = undef;
+-		my $config_z_file = $config_file.".z";
+-		open( CFG_IN_FILE, $config_z_file ) or die( "Can't open '$config_z_file' for reading" );
+-		my $data = <CFG_IN_FILE>;
+-		close( CFG_IN_FILE );
+-		if ( $config_file =~ /\.h$/ )
+-		{
+-			foreach my $option ( @options )
+-			{
+-				my $opt_name = $option->{name};
+-				my $opt_type = $option->{type};
+-				my $opt_value = $option->{value};
+-				my $opt_desc = $option->{description};
+-				if ( $opt_type == $types{boolean} )
+-				{
+-					$opt_value = "true" if ( $opt_value eq "yes" );
+-					$opt_value = "false" if ( $opt_value eq "no" );
+-				}
+-				if ( $opt_type == $types{boolean}
+-				|| $opt_type == $types{integer}
+-				|| $opt_type == $types{decimal}
+-				|| $opt_type == $types{hexadecimal} )
+-				{
+-					$data =~ s/^(#define\s+$opt_name\s+).*$/$1$opt_value\t\/\/ $opt_desc \(from zmconfig\)/mg;
+-				}
+-				else
+-				{
+-					$data =~ s/^(#define\s+$opt_name\s+).*$/$1"$opt_value"\t\/\/ $opt_desc \(from zmconfig\)/mg;
+-				}
+-			}
+-		}
+-		elsif ( $config_file =~ /\.pl$/ )
+-		{
+-			foreach my $option ( @options )
+-			{
+-				my $opt_name = $option->{name};
+-				my $opt_type = $option->{type};
+-				my $opt_value = $option->{value};
+-				my $opt_desc = $option->{description};
+-				if ( $opt_type == $types{boolean} )
+-				{
+-					$opt_value = 1 if ( $opt_value eq "yes" );
+-					$opt_value = 0 if ( $opt_value eq "no" );
+-				}
+-				if ( $opt_type == $types{boolean}
+-				|| $opt_type == $types{integer}
+-				|| $opt_type == $types{decimal}
+-				|| $opt_type == $types{hexadecimal} )
+-				{
+-					$data =~ s/^(\s*use\s+constant\s+$opt_name\s*=>\s*).*$/$1$opt_value;\t# $opt_desc \(from zmconfig\)/mg;
+-				}
+-				elsif ( $opt_type == $types{email} )
+-				{
+-					$opt_value =~ s/\@/\\\@/;
+-					$data =~ s/^(\s*use\s+constant\s+$opt_name\s*=>\s*).*$/$1"$opt_value";\t# $opt_desc \(from zmconfig\)/mg;
+-				}
+-				elsif ( $opt_type == $types{include} )
+-				{
+-					open( FILE, "<$opt_value" ) or die( "Can't open option file '$opt_value': $!" );
+-					local $/;
+-					my $content = <FILE>;
+-					$content =~ s/"/\\"/g;
+-					$data =~ s/^(\s*use\s+constant\s+$opt_name\s*=>\s*).*$/$1\t# $opt_desc \(from zmconfig\)\n"$content";/mg;
+-				}
+-				else
+-				{
+-					$data =~ s/^(\s*use\s+constant\s+$opt_name\s*=>\s*).*$/$1"$opt_value";\t# $opt_desc \(from zmconfig\)/mg;
+-				}
+-			}
+-		}
+-		elsif ( $config_file =~ /\.php$/ )
+-		{
+-			foreach my $option ( @options )
+-			{
+-				my $opt_name = $option->{name};
+-				my $opt_type = $option->{type};
+-				my $opt_value = $option->{value};
+-				my $opt_desc = $option->{description};
+-				if ( $opt_type == $types{boolean} )
+-				{
+-					$opt_value = "true" if ( $opt_value eq "yes" );
+-					$opt_value = "false" if ( $opt_value eq "no" );
+-				}
+-				if ( $opt_type == $types{boolean}
+-				|| $opt_type == $types{integer}
+-				|| $opt_type == $types{decimal}
+-				|| $opt_type == $types{hexadecimal} )
+-				{
+-					$data =~ s/^(define\s*\(\s*"$opt_name"\s*,\s*).*$/$1$opt_value \);\t\/\/ $opt_desc \(from zmconfig\)/mg;
+-				}
+-				else
+-				{
+-					$data =~ s/^(define\s*\(\s*"$opt_name"\s*,\s*).*$/$1"$opt_value" \);\t\/\/ $opt_desc \(from zmconfig\)/mg;
+-				}
+-			}
+-		}
+-		elsif ( $config_file =~ /\.sql$/ )
+-		{
+-			foreach my $option ( @options )
+-			{
+-				my $opt_name = $option->{name};
+-				my $opt_type = $option->{type};
+-				my $opt_value = $option->{value};
+-				my $opt_desc = $option->{description};
+-				$data =~ s/$opt_name/$opt_value/mg;
+-			}
+-		}
+-		elsif ( $config_file =~ /\.conf$/ )
+-		{
+-			foreach my $option ( @options )
+-			{
+-				my $opt_name = $option->{name};
+-				my $opt_type = $option->{type};
+-				my $opt_value = $option->{value};
+-				my $opt_desc = $option->{description};
+-				$data =~ s/^$opt_name\s*=.*$/$opt_name=$opt_value/mg;
+-			}
+-		}
+-		elsif ( $config_file !~ /\./ )
+-		{
+-			foreach my $option ( @options )
+-			{
+-				my $opt_name = $option->{name};
+-				my $opt_type = $option->{type};
+-				my $opt_value = $option->{value};
+-				my $opt_desc = $option->{description};
+-				$data =~ s/^$opt_name\s*=.*$/$opt_name="$opt_value"/mg;
+-			}
+-		}
+-		else
+-		{
+-			warn( "Unrecognised file type '$config_file'" );
+-			next;
+-		}
+-		open( CFG_FILE, ">$config_file" ) or die( "Can't open '$config_file' for writing" );
+-		print( CFG_FILE $data );
+-		close( CFG_FILE );
+-	}
+-}
+-
+-if ( $first_run )
+-{
+-	print( "Now please create your database and database users and then run\n'perl zmconfig.pl -noi' to import your configuration into the database\n" );
+-}
