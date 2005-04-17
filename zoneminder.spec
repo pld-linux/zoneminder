@@ -18,6 +18,7 @@ Patch2: zm-init.patch
 Patch3: zm-zmoptions.patch
 Patch4: zm-mysql41.patch
 Patch5: zm-pbar.patch
+Patch6: zm-makefile-nochown
 URL:		http://www.zoneminder.com/
 BuildRequires:	autoconf
 BuildRequires:	automake
@@ -81,6 +82,7 @@ parametrów na protokó³ konkretnej kamery.
 %patch2 -p1 -b .init
 %patch4 -p1 -b .mysql41
 %patch5 -p1 -b .pbar
+%patch6 -p0 
 
 %build
 %{__aclocal}
