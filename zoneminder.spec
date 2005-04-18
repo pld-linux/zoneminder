@@ -13,12 +13,12 @@ Source3:	%{name}-dbupgrade
 Source4:	%{name}-conf.httpd
 #Source5:	%{name}-cambozola-0.65.tar.gz ?
 Source6:	%{name}-zmalter-os
-Patch1: zm-config.patch
-Patch2: zm-init.patch
-Patch3: zm-zmoptions.patch
-Patch4: zm-mysql41.patch
-Patch5: zm-pbar.patch
-Patch6: zm-makefile-nochown
+Patch0:		%{name}-config.patch
+Patch1:		%{name}-init.patch
+Patch2:		%{name}-zmoptions.patch
+Patch3:		%{name}-mysql41.patch
+Patch4:		%{name}-pbar.patch
+Patch5:		%{name}-makefile-nochown
 URL:		http://www.zoneminder.com/
 BuildRequires:	autoconf
 BuildRequires:	automake
@@ -48,8 +48,10 @@ ró¿nymi kamerami USB i sieciowymi kamerami IP.
 
 %package X10
 Summary:	Controls the monitoring of the X10 interface
+Summary(pl):	Sterowanie monitorowaniem interfejsu X10
 Group:		Libraries
-Requires:	%{name} = %{version} perl-X10
+Requires:	%{name} = %{version}-%{release}
+Requires:	perl-X10
 
 %description X10
 This script controls the monitoring of the X10 interface and the
@@ -57,13 +59,16 @@ consequent management of the ZM daemons based on the receipt of X10
 signals.
 
 %description X10 -l pl
-Te skrypty kontroluj± monitoring interfejsu X10 i nastêpnie zarz±dzaj±
-demonami ZM na podstawie sygna³ów X10.
+Te skrypty steruj± monitorowaniem interfejsu X10 i zarz±dzaj± demonami
+ZM na podstawie idei sygna³ów X10.
 
 %package control
-Summary:	Some scripts for control Pan/Tilt/Zoom class cameras.
+Summary:	Some scripts for control Pan/Tilt/Zoom class cameras
+Summary)pl):	Skrypty do sterowania kamerami klasy Pan/Tilt/Zoom
 Group:		Libraries
-Requires:	%{name} = %{version} perl-Device-SerialPort perl-Time-HiRes
+Requires:	%{name} = %{version}-%{release}
+Requires:	perl-Device-SerialPort
+Requires:	perl-Time-HiRes
 
 %description control
 This are a set of example scripts which can be used to control
@@ -72,17 +77,18 @@ parameters used for camera control into the actual protocol commands
 sent to the camera.
 
 %description control -l pl
-To jest zestaw przyk³adowych skryptw do kontroli kamer klasy
-"Pan/Tilt/Zoom" Ka¿dy skrypt konwertuje zestaw standardowych
-parametrów na protokó³ konkretnej kamery.
+To jest zestaw przyk³adowych skryptów do sterowania kamerami klasy
+"Pan/Tilt/Zoom". Ka¿dy skrypt konwertuje zestaw standardowych
+parametrów u¿ywanych do sterowania kamer± na protokó³ konkretnej
+kamery.
 
 %prep
 %setup -q
-%patch1 -p1 -b .config
-%patch2 -p1 -b .init
-%patch4 -p1 -b .mysql41
-%patch5 -p1 -b .pbar
-%patch6 -p0 
+%patch0 -p1
+%patch1 -p1
+%patch3 -p1
+%patch4 -p1
+%patch5 -p0
 
 %build
 %{__aclocal}
@@ -107,7 +113,8 @@ perl zmconfig.pl -f zmconfig.txt -noi -nod
 rm -rf $RPM_BUILD_ROOT
 install -d $RPM_BUILD_ROOT{%{_datadir}/%{name},%{_examplesdir}/%{name}-%{version},%{_sysconfdir}}
 
-%{__make} DESTDIR=$RPM_BUILD_ROOT install
+%{__make} install \
+	DESTDIR=$RPM_BUILD_ROOT
 
 install -d $RPM_BUILD_ROOT/var/log/zm
 install -d $RPM_BUILD_ROOT/var/lib/zm
@@ -130,31 +137,32 @@ mv $RPM_BUILD_ROOT%{_datadir}/doc doc
 
 install db/zmalter-1.*.sql $RPM_BUILD_ROOT%{_prefix}/lib/zm/upgrade
 cat %{SOURCE3} | sed -e 's/^ZM_VERSION=.*$/ZM_VERSION=%{version}/' >zmdbupgrade
-install -m 700 -o %{zmuid} -g %{zmgid} zmdbupgrade $RPM_BUILD_ROOT%{_prefix}/lib/zm/upgrade/zmdbupgrade
+install -m 700 zmdbupgrade $RPM_BUILD_ROOT%{_prefix}/lib/zm/upgrade/zmdbupgrade
 for d in events images sounds temp; do
-    install -m 755 -o %{zmuid} -g %{zmgid} -d $RPM_BUILD_ROOT/var/lib/zm/$d
+	install -m 755 -d $RPM_BUILD_ROOT/var/lib/zm/$d
 rm -rf $RPM_BUILD_ROOT%{_prefix}/lib/zm/html/$d
 ln -sf /var/lib/zm/$d $RPM_BUILD_ROOT%{_prefix}/lib/zm/html/$d
 done
 install -d $RPM_BUILD_ROOT/etc/rc.d/init.d
-install -m 755 -o root scripts/zm $RPM_BUILD_ROOT/etc/rc.d/init.d
+install -m 755 scripts/zm $RPM_BUILD_ROOT/etc/rc.d/init.d
 install -d $RPM_BUILD_ROOT%{_sysconfdir}/httpd/conf.d
-install -o root %{SOURCE4} $RPM_BUILD_ROOT%{_sysconfdir}/httpd/conf.d/zm.conf
+install %{SOURCE4} $RPM_BUILD_ROOT%{_sysconfdir}/httpd/conf.d/zm.conf
 gunzip -c %{SOURCE5} | tar xf - cambozola-*/dist/cambozola.jar
 install cambozola-*/dist/cambozola.jar $RPM_BUILD_ROOT%{_prefix}/lib/zm/html/cambozola.jar
 rm -rf cambozola-*
-install -m 700 -o %{zmuid} -g %{zmgid} %{SOURCE6} $RPM_BUILD_ROOT%{_prefix}/lib/zm/upgrade/zmalter-os
-
-%preun
-
-/etc/rc.d/init.d/zm stop
-/sbin/chkconfig --del zm
-
-%post
-/sbin/chkconfig --add zm
+install -m 700 %{SOURCE6} $RPM_BUILD_ROOT%{_prefix}/lib/zm/upgrade/zmalter-os
 
 %clean
 rm -rf $RPM_BUILD_ROOT
+
+%preun
+if [ "$1" = "0" ]; then
+	/etc/rc.d/init.d/zm stop
+	/sbin/chkconfig --del zm
+fi
+
+%post
+/sbin/chkconfig --add zm
 
 %files
 %defattr(644,root,root,755)
@@ -167,9 +175,9 @@ rm -rf $RPM_BUILD_ROOT
 %{_prefix}/lib/zm/cgi-bin/*
 %{_prefix}/lib/zm/cgi-bin/zms
 %dir %{_prefix}/lib/zm/bin
+# XXX: DUP (zmfix and files from subpackages)
 %{_prefix}/lib/zm/bin/*
 %attr(4755,root,root) %{_prefix}/lib/zm/bin/zmfix
-%{_prefix}/lib/zm/bin/*
 %dir %{_prefix}/lib/zm/init
 %{_prefix}/lib/zm/init/*
 %dir %{_prefix}/lib/zm/upgrade
