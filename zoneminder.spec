@@ -1,6 +1,6 @@
 # ToDo:
 # -move cambozola to separate spec ?
-# 
+#
 Summary:	Zone Minder is a software motion detector with nice WWW GUI
 Summary(pl):	Zone Minder - programowy wykrywacz ruchu z mi³ym GUI przez WWW
 Name:		zm
@@ -107,7 +107,7 @@ kamery.
 	--with-webgroup=http	\
 	--with-webuser=http		 \
 	--with-webdir=%{_datadir}/%{name}	\
-	--with-cgidir=/home/services/http/cgi-bin/
+	--with-cgidir=%{_datadir}/%{name}/cgi-bin
 
 cp %{SOURCE1} zmconfig.txt
 perl zmconfig.pl -f zmconfig.txt -noi -nod
@@ -141,14 +141,14 @@ install -d $RPM_BUILD_ROOT%{_prefix}/lib/zm/upgrade
 
 install db/zmalter-1.*.sql $RPM_BUILD_ROOT%{_prefix}/lib/zm/upgrade
 cat %{SOURCE3} | sed -e 's/^ZM_VERSION=.*$/ZM_VERSION=%{version}/' >zmdbupgrade
-install -m 700 zmdbupgrade $RPM_BUILD_ROOT%{_prefix}/lib/zm/upgrade/zmdbupgrade
+install zmdbupgrade $RPM_BUILD_ROOT%{_prefix}/lib/zm/upgrade/zmdbupgrade
 for d in events images sounds temp; do
 	install -m 755 -d $RPM_BUILD_ROOT/var/lib/zm/$d
 rm -rf $RPM_BUILD_ROOT%{_prefix}/lib/zm/html/$d
 #ln -sf /var/lib/zm/$d $RPM_BUILD_ROOT%{_prefix}/lib/zm/html/$d
 done
 install -d $RPM_BUILD_ROOT/etc/rc.d/init.d
-install -m 755 scripts/zm $RPM_BUILD_ROOT/etc/rc.d/init.d
+install scripts/zm $RPM_BUILD_ROOT/etc/rc.d/init.d
 install -d $RPM_BUILD_ROOT%{_sysconfdir}/httpd/conf.d
 install %{SOURCE4} $RPM_BUILD_ROOT%{_sysconfdir}/httpd/conf.d/zm.conf
 
@@ -156,7 +156,7 @@ gunzip -c %{SOURCE5} | tar xf - cambozola-*/dist/cambozola.jar
 install cambozola-*/dist/cambozola.jar $RPM_BUILD_ROOT%{_prefix}/lib/zm/html/cambozola.jar
 #rm -rf cambozola-*
 
-install -m 700 %{SOURCE6} $RPM_BUILD_ROOT%{_prefix}/lib/zm/upgrade/zmalter-os
+install %{SOURCE6} $RPM_BUILD_ROOT%{_prefix}/lib/zm/upgrade/zmalter-os
 
 %clean
 rm -rf $RPM_BUILD_ROOT
@@ -177,31 +177,32 @@ fi
 %config(noreplace) %attr(644,root,root) %{_sysconfdir}/httpd/conf.d/zm.conf
 %attr(754,root,root) /etc/rc.d/init.d/zm
 %dir %{_prefix}/lib/zm
-%dir %{_prefix}/lib/zm/cgi-bin
-%{_prefix}/lib/zm/cgi-bin/*
-%{_prefix}/lib/zm/cgi-bin/zms
+%dir %{_datadir}/zm/cgi-bin
+%{_datadir}/zm/cgi-bin/*
 %dir %{_prefix}/lib/zm/bin
 # XXX: DUP (zmfix and files from subpackages)
 %{_prefix}/lib/zm/bin/*
-%attr(4755,root,root) %{_prefix}/lib/zm/bin/zmfix
+%attr(4755,root,root) %{_bindir}/zmfix
 %dir %{_prefix}/lib/zm/init
 %{_prefix}/lib/zm/init/*
 %dir %{_prefix}/lib/zm/upgrade
 %{_prefix}/lib/zm/upgrade/zm*
 %dir %{_prefix}/lib/zm/html
 %{_prefix}/lib/zm/html/*
-%dir %{_prefix}/lib/zm/html/graphics
-%{_prefix}/lib/zm/html/graphics/*
+#%dir %{_datadir}/zm/graphics
+#%{_datadir}/zm/graphics/*
+%dir %{_datadir}/zm
+%{_datadir}/zm/*
 
 %dir %attr(755,http,http) /var/log/zm
 
 %files X10
 %defattr(644,root,root,755)
-%{_prefix}/lib/zm/bin/zmx10.pl
+%attr(755,root,root) %{_bindir}/zmx10.pl
 
 %files control
 %defattr(644,root,root,755)
-%{_prefix}/lib/zm/init/zmcontrol.sql
-%{_prefix}/lib/zm/bin/zmcontrol-kx-hcm10.pl
-%{_prefix}/lib/zm/bin/zmcontrol-pelco-d.pl
-%{_prefix}/lib/zm/bin/zmcontrol-visca.pl
+#%{_prefix}/lib/zm/init/zmcontrol.sql
+%attr(755,root,root) %{_bindir}/zmcontrol-kx-hcm10.pl
+%attr(755,root,root) %{_bindir}/zmcontrol-pelco-d.pl
+%attr(755,root,root) %{_bindir}/zmcontrol-visca.pl
