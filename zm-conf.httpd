@@ -1,0 +1,16 @@
+Alias /zm/ "/usr/lib/zm/html/"
+<Directory "/usr/lib/zm/html">
+    Options Indexes MultiViews FollowSymLinks
+    AllowOverride AuthConfig Limit
+    Order allow,deny
+    Allow from all
+</Directory>
+
+ScriptAlias /cgi-bin/zm/ "/usr/lib/zm/cgi-bin/"
+<Directory "/usr/lib/zm/cgi-bin">
+    AllowOverride AuthConfig Limit
+    Options ExecCGI
+    Order allow,deny
+    Allow from all
+</Directory>
+
