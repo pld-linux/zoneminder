@@ -1,3 +1,6 @@
+# ToDo:
+# -move cambozola to separate spec ?
+# 
 Summary:	Zone Minder is a software motion detector with nice WWW GUI
 Summary(pl):	Zone Minder - programowy wykrywacz ruchu z mi³ym GUI przez WWW
 Name:		zm
@@ -11,7 +14,9 @@ Source1:	%{name}-config.txt
 Source2:	%{name}-init
 Source3:	%{name}-dbupgrade
 Source4:	%{name}-conf.httpd
-#Source5:	%{name}-cambozola-0.65.tar.gz ?
+# http://www.charliemouse.com/code/cambozola/
+Source5:	http://www.charliemouse.com/code/cambozola/cambozola-0.65.tar.gz
+# Source5-md5:	a70a5e1c24e605d5ed74453d36c9519a
 Source6:	%{name}-zmalter-os
 Patch0:		%{name}-config.patch
 Patch1:		%{name}-init.patch
@@ -64,7 +69,7 @@ ZM na podstawie idei sygna³ów X10.
 
 %package control
 Summary:	Some scripts for control Pan/Tilt/Zoom class cameras
-Summary)pl):	Skrypty do sterowania kamerami klasy Pan/Tilt/Zoom
+Summary(pl):	Skrypty do sterowania kamerami klasy Pan/Tilt/Zoom
 Group:		Libraries
 Requires:	%{name} = %{version}-%{release}
 Requires:	perl-Device-SerialPort
@@ -118,22 +123,21 @@ install -d $RPM_BUILD_ROOT{%{_datadir}/%{name},%{_examplesdir}/%{name}-%{version
 
 install -d $RPM_BUILD_ROOT/var/log/zm
 install -d $RPM_BUILD_ROOT/var/lib/zm
-install -d $RPM_BUILD_ROOT/var/lib/zm/events
-install -d $RPM_BUILD_ROOT/var/lib/zm/images
-install -d $RPM_BUILD_ROOT/var/lib/zm/sounds
-install -d $RPM_BUILD_ROOT/var/lib/zm/temp
+install -d $RPM_BUILD_ROOT/var/lib/zm/{events,images,sounds,temp}
 install -d $RPM_BUILD_ROOT%{_prefix}/lib/zm/init
+install -d $RPM_BUILD_ROOT%{_prefix}/lib/zm/bin
+install -d $RPM_BUILD_ROOT%{_prefix}/lib/zm/html
 install zmconfig.txt $RPM_BUILD_ROOT%{_prefix}/lib/zm/init/zmconfig.txt
 cat %{SOURCE2} | sed -e 's/^ZM_VERSION=.*$/ZM_VERSION=%{version}/' >zminit
 install zminit $RPM_BUILD_ROOT%{_prefix}/lib/zm/bin/zminit
 cp zmconfig.pl zmoptions
-cat %{PATCH3} | patch -p1 -b --suffix .zmopt -s
+#cat %{PATCH3} | patch -p1 -b --suffix .zmopt -s
 install zmoptions $RPM_BUILD_ROOT%{_prefix}/lib/zm/init/zmoptions
 install zmconfig_eml.txt $RPM_BUILD_ROOT%{_prefix}/lib/zm/init/zmconfig_eml.txt
 install zmconfig_msg.txt $RPM_BUILD_ROOT%{_prefix}/lib/zm/init/zmconfig_msg.txt
 install -d $RPM_BUILD_ROOT%{_prefix}/lib/zm/upgrade
 
-mv $RPM_BUILD_ROOT%{_datadir}/doc doc
+#mv $RPM_BUILD_ROOT%{_datadir}/doc doc
 
 install db/zmalter-1.*.sql $RPM_BUILD_ROOT%{_prefix}/lib/zm/upgrade
 cat %{SOURCE3} | sed -e 's/^ZM_VERSION=.*$/ZM_VERSION=%{version}/' >zmdbupgrade
@@ -141,15 +145,17 @@ install -m 700 zmdbupgrade $RPM_BUILD_ROOT%{_prefix}/lib/zm/upgrade/zmdbupgrade
 for d in events images sounds temp; do
 	install -m 755 -d $RPM_BUILD_ROOT/var/lib/zm/$d
 rm -rf $RPM_BUILD_ROOT%{_prefix}/lib/zm/html/$d
-ln -sf /var/lib/zm/$d $RPM_BUILD_ROOT%{_prefix}/lib/zm/html/$d
+#ln -sf /var/lib/zm/$d $RPM_BUILD_ROOT%{_prefix}/lib/zm/html/$d
 done
 install -d $RPM_BUILD_ROOT/etc/rc.d/init.d
 install -m 755 scripts/zm $RPM_BUILD_ROOT/etc/rc.d/init.d
 install -d $RPM_BUILD_ROOT%{_sysconfdir}/httpd/conf.d
 install %{SOURCE4} $RPM_BUILD_ROOT%{_sysconfdir}/httpd/conf.d/zm.conf
+
 gunzip -c %{SOURCE5} | tar xf - cambozola-*/dist/cambozola.jar
 install cambozola-*/dist/cambozola.jar $RPM_BUILD_ROOT%{_prefix}/lib/zm/html/cambozola.jar
-rm -rf cambozola-*
+#rm -rf cambozola-*
+
 install -m 700 %{SOURCE6} $RPM_BUILD_ROOT%{_prefix}/lib/zm/upgrade/zmalter-os
 
 %clean
