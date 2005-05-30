@@ -19,8 +19,8 @@ Source5:	http://www.charliemouse.com/code/cambozola/cambozola-0.65.tar.gz
 # Source5-md5:	a70a5e1c24e605d5ed74453d36c9519a
 Source6:	%{name}-zmalter-os
 Patch0:		%{name}-config.patch
-Patch1:		%{name}-init.patch
-Patch2:		%{name}-zmoptions.patch
+patch1:		%{name}-init.patch
+#Patch2:		%{name}-zmoptions.patch
 Patch3:		%{name}-mysql41.patch
 Patch4:		%{name}-pbar.patch
 Patch5:		%{name}-makefile-nochown
@@ -32,7 +32,12 @@ BuildRequires:	ffmpeg-devel >= 0.4.8
 BuildRequires:	libjpeg-devel
 BuildRequires:	lame-libs-devel
 BuildRequires:	mysql-devel
+BuildRequires:	pcre-devel
+Requires:	pcre-static
 Requires:	perl-DBD-mysql
+Requires:	perl-MIME-tools
+Requires:	perl-Date-Manip
+Requires:	php
 BuildRoot:	%{tmpdir}/%{name}-%{version}-root-%(id -u -n)
 
 %description
@@ -120,7 +125,7 @@ install -d $RPM_BUILD_ROOT{%{_datadir}/%{name},%{_examplesdir}/%{name}-%{version
 
 %{__make} install \
 	DESTDIR=$RPM_BUILD_ROOT
-
+install -d  $RPM_BUILD_ROOT/var/run/zm
 install -d $RPM_BUILD_ROOT/var/log/zm
 install -d $RPM_BUILD_ROOT/var/lib/zm
 install -d $RPM_BUILD_ROOT/var/lib/zm/{events,images,sounds,temp}
@@ -153,7 +158,7 @@ install -d $RPM_BUILD_ROOT%{_sysconfdir}/httpd/conf.d
 install %{SOURCE4} $RPM_BUILD_ROOT%{_sysconfdir}/httpd/conf.d/zm.conf
 
 gunzip -c %{SOURCE5} | tar xf - cambozola-*/dist/cambozola.jar
-install cambozola-*/dist/cambozola.jar $RPM_BUILD_ROOT%{_prefix}/lib/zm/html/cambozola.jar
+install cambozola-*/dist/cambozola.jar $RPM_BUILD_ROOT%{_datadir}/zm/cambozola.jar
 #rm -rf cambozola-*
 
 install %{SOURCE6} $RPM_BUILD_ROOT%{_prefix}/lib/zm/upgrade/zmalter-os
@@ -173,28 +178,49 @@ fi
 %files
 %defattr(644,root,root,755)
 %doc AUTHORS COPYING README README.html README.pdf README.rtf
-%config(noreplace) %attr(600,%{zmuid},%{zmgid}) %{_sysconfdir}/zm.conf
+#%{_sysconfdir}
+%config(noreplace) %attr(640,root,http) %{_sysconfdir}/zm.conf
 %config(noreplace) %attr(644,root,root) %{_sysconfdir}/httpd/conf.d/zm.conf
 %attr(754,root,root) /etc/rc.d/init.d/zm
-%dir %{_prefix}/lib/zm
-%dir %{_datadir}/zm/cgi-bin
-%{_datadir}/zm/cgi-bin/*
-%dir %{_prefix}/lib/zm/bin
-# XXX: DUP (zmfix and files from subpackages)
-%{_prefix}/lib/zm/bin/*
-%attr(4755,root,root) %{_bindir}/zmfix
-%dir %{_prefix}/lib/zm/init
-%{_prefix}/lib/zm/init/*
-%dir %{_prefix}/lib/zm/upgrade
-%{_prefix}/lib/zm/upgrade/zm*
-%dir %{_prefix}/lib/zm/html
-%{_prefix}/lib/zm/html/*
-#%dir %{_datadir}/zm/graphics
-#%{_datadir}/zm/graphics/*
-%dir %{_datadir}/zm
-%{_datadir}/zm/*
 
-%dir %attr(755,http,http) /var/log/zm
+#%{_bindir}
+%attr(4755,root,root) %{_bindir}/zmfix
+%attr(755,root,root) %{_bindir}/zma
+%attr(755,root,root) %{_bindir}/zmaudit.pl
+%attr(755,root,root) %{_bindir}/zmc
+%attr(755,root,root) %{_bindir}/zmdc.pl
+%attr(755,root,root) %{_bindir}/zmf
+%attr(755,root,root) %{_bindir}/zmfilter.pl
+%attr(755,root,root) %{_bindir}/zmpkg.pl
+%attr(755,root,root) %{_bindir}/zmtrack.pl
+%attr(755,root,root) %{_bindir}/zmtrigger.pl
+%attr(755,root,root) %{_bindir}/zmu
+%attr(755,root,root) %{_bindir}/zmupdate.pl
+%attr(755,root,root) %{_bindir}/zmvideo.pl
+%attr(755,root,root) %{_bindir}/zmwatch.pl
+
+%dir %attr(750,root,http)%{_prefix}/lib/zm
+%dir %{_prefix}/lib/zm/bin
+%dir %attr(750,root,http) %{_prefix}/lib/zm/html
+%dir %{_prefix}/lib/zm/init
+%dir %{_prefix}/lib/zm/upgrade
+%attr(4750,root,root) %{_prefix}/lib/zm/bin/*
+%{_prefix}/lib/zm/init/*
+%{_prefix}/lib/zm/upgrade/zm*
+
+%dir %attr(750,root,http) %{_datadir}/zm
+%dir %attr(750,root,http) %{_datadir}/zm/cgi-bin
+%dir %attr(750,root,http) %{_datadir}/zm/graphics
+%attr(750,root,http) %{_datadir}/zm/cgi-bin/*
+%attr(640,root,http) %{_datadir}/zm/graphics/*
+%attr(640,root,http) %{_datadir}/zm/*.css
+%attr(640,root,http) %{_datadir}/zm/*.ico
+%attr(640,root,http) %{_datadir}/zm/*.php
+%attr(640,root,http) %{_datadir}/zm/cambozola.jar 
+
+%dir %attr(770,root,http) /var/log/zm
+
+%dir %attr(770,root,http) /var/run/zm
 
 %files X10
 %defattr(644,root,root,755)
