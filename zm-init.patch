@@ -1,6 +1,6 @@
---- zm-1.21.0/scripts/zm.z.init	2004-02-15 22:07:01.000000000 +0300
-+++ zm-1.21.0/scripts/zm.z	2005-04-09 22:45:15.668039106 +0400
-@@ -1,15 +1,103 @@
+--- zm-1.21.0.org/scripts/zm.z	2005-05-26 13:13:22.000000000 +0200
++++ zm-1.21.0/scripts/zm.z	2005-05-26 13:16:56.000000000 +0200
+@@ -1,30 +1,120 @@
  #!/bin/sh
  # description: Control ZoneMinder as a Service
 -# chkconfig: 2345 99 99
@@ -100,12 +100,37 @@
 +	return 0
 +}
  start() {
+-	echo -n "Starting $prog: "
+-	$command start
 +	checkdb || return $?
 +	loadcontrol || return $?
- 	echo -n "Starting $prog: "
- 	$command start
++#	echo -n "Starting $prog: "
++	msg_starting ${prog} 
++	daemon $command start
  	RETVAL=$?
-@@ -50,11 +138,18 @@
+-	[ $RETVAL = 0 ] && echo_success
+-	[ $RETVAL != 0 ] && echo_failure
++#	[ $RETVAL = 0 ] && ok
++#	[ $RETVAL != 0 ] && echo_failure
+ 	echo
+ 	[ $RETVAL = 0 ] && touch /var/lock/subsys/zm
+ 	return $RETVAL
+ }
+ stop() {
+-	echo -n $"Stopping $prog: "
+-	$command stop
++#	echo -n $"Stopping $prog: "
++	msg_stopping ${prog}
++	daemon $command stop
+ 	RETVAL=$?
+-	[ $RETVAL = 0 ] && echo_success
+-	[ $RETVAL != 0 ] && echo_failure
++#	[ $RETVAL = 0 ] && echo_success
++#	[ $RETVAL != 0 ] && echo_failure
+ 	echo
+ 	[ $RETVAL = 0 ] && rm -f /var/lock/subsys/zm
+ }
+@@ -50,11 +140,18 @@
  	stop
  	start
  	;;

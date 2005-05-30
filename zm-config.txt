@@ -43,7 +43,7 @@ Value: sounds
 Description: Directory to the sounds that the ZoneMinder client can use
 
 Name: ZM_PATH_ZMS
-Value: /cgi-bin/zm/zms
+Value: /zm/cgi-bin/zms
 Description: Web path to zms streaming server
 
 Name: ZM_CAN_STREAM
@@ -147,7 +147,7 @@ Value: no
 Description: Whether we want to interface external event triggers via socket or device files
 
 Name: ZM_PATH_SOCKS
-Value: /var/lib/zm
+Value: /var/run/zm
 Description: Path to the various Unix domain socket files that ZoneMinder uses
 
 Name: ZM_PATH_LOGS
