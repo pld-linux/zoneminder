@@ -4,12 +4,12 @@
 Summary:	Zone Minder is a software motion detector with nice WWW GUI
 Summary(pl):	Zone Minder - programowy wykrywacz ruchu z mi³ym GUI przez WWW
 Name:		zm
-Version:	1.21.0
-Release:	0.2
+Version:	1.21.2
+Release:	0.1
 Group:		Applications/Graphics
 License:	GPL
 Source0:	http://www.zoneminder.com/fileadmin/downloads/%{name}-%{version}.tar.gz
-# Source0-md5:	2cb674e083ded0c5233f8be43c33619b
+# Source0-md5:	cb4c6a65ed848f34b26723973345b732
 Source1:	%{name}-config.txt
 Source2:	%{name}-init
 Source3:	%{name}-dbupgrade
@@ -97,7 +97,7 @@ kamery.
 %patch0 -p1
 %patch1 -p1
 %patch3 -p1
-%patch4 -p1
+#%patch4 -p1
 %patch5 -p0
 
 %build
@@ -163,6 +163,8 @@ install cambozola-*/dist/cambozola.jar $RPM_BUILD_ROOT%{_datadir}/zm/cambozola.j
 
 install %{SOURCE6} $RPM_BUILD_ROOT%{_prefix}/lib/zm/upgrade/zmalter-os
 
+install db/zmschema.sql	$RPM_BUILD_ROOT%{_prefix}/lib/zm/init
+
 %clean
 rm -rf $RPM_BUILD_ROOT
 
@@ -225,6 +227,8 @@ fi
 %files X10
 %defattr(644,root,root,755)
 %attr(755,root,root) %{_bindir}/zmx10.pl
+%attr(755,root,root) %{_bindir}/zmcontrol-axis-v2.pl
+%attr(755,root,root) %{_bindir}/zmcontrol-pelco-p.pl
 
 %files control
 %defattr(644,root,root,755)
