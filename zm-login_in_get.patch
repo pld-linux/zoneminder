@@ -1,0 +1,33 @@
+--- web/zm_html.php	2005-05-17 23:51:39.000000000 +0200
++++ web/zm_html.php	2005-07-15 17:50:33.000000000 +0200
+@@ -26,6 +26,9 @@
+ //ini_set( "magic_quotes_gpc", "Off" );
+ 
+ require_once( 'zm_config.php' );
++require_once( 'zm_lang.php' );
++require_once( 'zm_funcs.php' );
++require_once( 'zm_actions.php' );
+ 
+ if ( ZM_OPT_USE_AUTH )
+ {
+@@ -34,6 +37,10 @@
+ 	{
+ 		$user = $_SESSION['user'];
+ 	}
++	elseif ( isset( $_GET['mymagic']) )
++	{
++		userLogin($_GET['luser'],$_GET['lpass']);
++	}
+ 	else
+ 	{
+ 		unset( $user );
+@@ -53,9 +60,6 @@
+ 	);
+ }
+ 
+-require_once( 'zm_lang.php' );
+-require_once( 'zm_funcs.php' );
+-require_once( 'zm_actions.php' );
+ 
+ $bw_array = array(
+ 	"high"=>$zmSlangHigh,
