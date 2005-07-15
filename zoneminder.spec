@@ -4,12 +4,12 @@
 Summary:	Zone Minder is a software motion detector with nice WWW GUI
 Summary(pl):	Zone Minder - programowy wykrywacz ruchu z mi³ym GUI przez WWW
 Name:		zm
-Version:	1.21.2
+Version:	1.21.3
 Release:	0.1
 Group:		Applications/Graphics
 License:	GPL
 Source0:	http://www.zoneminder.com/fileadmin/downloads/%{name}-%{version}.tar.gz
-# Source0-md5:	cb4c6a65ed848f34b26723973345b732
+# Source0-md5:	59e2be0fe4c5a75c2045484545ad3f43
 Source1:	%{name}-config.txt
 Source2:	%{name}-init
 Source3:	%{name}-dbupgrade
@@ -18,12 +18,15 @@ Source4:	%{name}-conf.httpd
 Source5:	http://www.charliemouse.com/code/cambozola/cambozola-0.65.tar.gz
 # Source5-md5:	a70a5e1c24e605d5ed74453d36c9519a
 Source6:	%{name}-zmalter-os
+Source7:	%{name}-logrotate_d
 Patch0:		%{name}-config.patch
 patch1:		%{name}-init.patch
 #Patch2:		%{name}-zmoptions.patch
 Patch3:		%{name}-mysql41.patch
 Patch4:		%{name}-pbar.patch
 Patch5:		%{name}-makefile-nochown
+Patch6:		%{name}-login_in_get.patch
+
 URL:		http://www.zoneminder.com/
 BuildRequires:	autoconf
 BuildRequires:	automake
@@ -99,6 +102,7 @@ kamery.
 %patch3 -p1
 #%patch4 -p1
 %patch5 -p0
+%patch6 -p0
 
 %build
 %{__aclocal}
@@ -132,11 +136,14 @@ install -d $RPM_BUILD_ROOT/var/lib/zm/{events,images,sounds,temp}
 install -d $RPM_BUILD_ROOT%{_prefix}/lib/zm/init
 install -d $RPM_BUILD_ROOT%{_prefix}/lib/zm/bin
 install -d $RPM_BUILD_ROOT%{_prefix}/lib/zm/html
+install -d $RPM_BUILD_ROOT/etc/logrotate.d/
+
 install zmconfig.txt $RPM_BUILD_ROOT%{_prefix}/lib/zm/init/zmconfig.txt
 cat %{SOURCE2} | sed -e 's/^ZM_VERSION=.*$/ZM_VERSION=%{version}/' >zminit
 install zminit $RPM_BUILD_ROOT%{_prefix}/lib/zm/bin/zminit
 cp zmconfig.pl zmoptions
 #cat %{PATCH3} | patch -p1 -b --suffix .zmopt -s
+install %{SOURCE7} $RPM_BUILD_ROOT/etc/logrotate.d/zm
 install zmoptions $RPM_BUILD_ROOT%{_prefix}/lib/zm/init/zmoptions
 install zmconfig_eml.txt $RPM_BUILD_ROOT%{_prefix}/lib/zm/init/zmconfig_eml.txt
 install zmconfig_msg.txt $RPM_BUILD_ROOT%{_prefix}/lib/zm/init/zmconfig_msg.txt
@@ -183,6 +190,7 @@ fi
 #%{_sysconfdir}
 %config(noreplace) %attr(640,root,http) %{_sysconfdir}/zm.conf
 %config(noreplace) %attr(644,root,root) %{_sysconfdir}/httpd/conf.d/zm.conf
+%config(noreplace) %attr(644,root,root) %{_sysconfdir}/logrotate.d/zm
 %attr(754,root,root) /etc/rc.d/init.d/zm
 
 #%{_bindir}
@@ -218,7 +226,7 @@ fi
 %attr(640,root,http) %{_datadir}/zm/*.css
 %attr(640,root,http) %{_datadir}/zm/*.ico
 %attr(640,root,http) %{_datadir}/zm/*.php
-%attr(640,root,http) %{_datadir}/zm/cambozola.jar 
+%attr(640,root,http) %{_datadir}/zm/cambozola.jar
 
 %dir %attr(770,root,http) /var/log/zm
 
