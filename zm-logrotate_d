@@ -1,0 +1,5 @@
+/var/log/zm/*log {
+    weekly
+    notifempty
+    missingok
+}
