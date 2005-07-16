@@ -25,7 +25,6 @@ patch1:		%{name}-init.patch
 Patch3:		%{name}-mysql41.patch
 Patch4:		%{name}-pbar.patch
 Patch5:		%{name}-makefile-nochown
-Patch6:		%{name}-login_in_get.patch
 
 URL:		http://www.zoneminder.com/
 BuildRequires:	autoconf
@@ -102,7 +101,6 @@ kamery.
 %patch3 -p1
 #%patch4 -p1
 %patch5 -p0
-%patch6 -p0
 
 %build
 %{__aclocal}
