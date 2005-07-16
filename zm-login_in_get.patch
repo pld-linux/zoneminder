@@ -1,33 +1,50 @@
---- web/zm_html.php	2005-05-17 23:51:39.000000000 +0200
-+++ web/zm_html.php	2005-07-15 17:50:33.000000000 +0200
-@@ -26,6 +26,9 @@
- //ini_set( "magic_quotes_gpc", "Off" );
+--- zm_html.php	2005-07-16 05:03:27.000000000 +0200
++++ /home/users/hunter/rpm/BUILD/zm-1.21.2/web/zm_html.php	2005-05-17 23:51:39.000000000 +0200
+@@ -24,23 +24,13 @@
+ }
  
- require_once( 'zm_config.php' );
-+require_once( 'zm_lang.php' );
-+require_once( 'zm_funcs.php' );
-+require_once( 'zm_actions.php' );
+ //ini_set( "magic_quotes_gpc", "Off" );
+-if ( ZM_OPT_USE_AUTH )
+-	session_start();
+ 
++require_once( 'zm_config.php' );
  
  if ( ZM_OPT_USE_AUTH )
  {
-@@ -34,6 +37,10 @@
+-	//session_start();
+-	if 
+-	( isset( $_GET['mymagic']) )
+-	{
+-		require_once( 'zm_config.php' );
+-		require_once( 'zm_lang.php' );
+-		require_once( 'zm_funcs.php' );
+-		require_once( 'zm_actions.php' );
+-		userLogin($_GET['luser'],$_GET['lpass']);
+-	}
+-	elseif ( isset( $_SESSION['user'] ) )
++	session_start();
++	if ( isset( $_SESSION['user'] ) )
  	{
  		$user = $_SESSION['user'];
  	}
-+	elseif ( isset( $_GET['mymagic']) )
-+	{
-+		userLogin($_GET['luser'],$_GET['lpass']);
-+	}
- 	else
- 	{
- 		unset( $user );
-@@ -53,9 +60,6 @@
+@@ -63,12 +53,10 @@
  	);
  }
  
--require_once( 'zm_lang.php' );
--require_once( 'zm_funcs.php' );
--require_once( 'zm_actions.php' );
+-require_once( 'zm_config.php' );
+ require_once( 'zm_lang.php' );
+ require_once( 'zm_funcs.php' );
+ require_once( 'zm_actions.php' );
  
+-
  $bw_array = array(
  	"high"=>$zmSlangHigh,
+ 	"medium"=>$zmSlangMedium,
+@@ -156,7 +144,6 @@
+ 	case "controlcaps" :
+ 	case "blank" :
+ 	case "none" :
+-	case "hddstatus":
+ 	{
+ 		require_once( "zm_".$format."_view_".$view.".php" );
+ 		break;
