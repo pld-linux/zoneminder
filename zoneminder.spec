@@ -7,7 +7,7 @@ Name:		zm
 Version:	1.21.3
 Release:	0.1
 Group:		Applications/Graphics
-License:	GPL
+License:	GPL v2
 Source0:	http://www.zoneminder.com/fileadmin/downloads/%{name}-%{version}.tar.gz
 # Source0-md5:	59e2be0fe4c5a75c2045484545ad3f43
 Source1:	%{name}-config.txt
@@ -184,14 +184,11 @@ fi
 
 %files
 %defattr(644,root,root,755)
-%doc AUTHORS COPYING README README.html README.pdf README.rtf
-#%{_sysconfdir}
+%doc AUTHORS README
 %config(noreplace) %attr(640,root,http) %{_sysconfdir}/zm.conf
 %config(noreplace) %attr(644,root,root) %{_sysconfdir}/httpd/conf.d/zm.conf
 %config(noreplace) %attr(644,root,root) %{_sysconfdir}/logrotate.d/zm
 %attr(754,root,root) /etc/rc.d/init.d/zm
-
-#%{_bindir}
 %attr(4755,root,root) %{_bindir}/zmfix
 %attr(755,root,root) %{_bindir}/zma
 %attr(755,root,root) %{_bindir}/zmaudit.pl
@@ -206,7 +203,6 @@ fi
 %attr(755,root,root) %{_bindir}/zmupdate.pl
 %attr(755,root,root) %{_bindir}/zmvideo.pl
 %attr(755,root,root) %{_bindir}/zmwatch.pl
-
 %dir %attr(750,root,http)%{_prefix}/lib/zm
 %dir %{_prefix}/lib/zm/bin
 %dir %attr(750,root,http) %{_prefix}/lib/zm/html
@@ -215,7 +211,6 @@ fi
 %attr(4750,root,root) %{_prefix}/lib/zm/bin/*
 %{_prefix}/lib/zm/init/*
 %{_prefix}/lib/zm/upgrade/zm*
-
 %dir %attr(750,root,http) %{_datadir}/zm
 %dir %attr(750,root,http) %{_datadir}/zm/cgi-bin
 %dir %attr(750,root,http) %{_datadir}/zm/graphics
@@ -225,9 +220,7 @@ fi
 %attr(640,root,http) %{_datadir}/zm/*.ico
 %attr(640,root,http) %{_datadir}/zm/*.php
 %attr(640,root,http) %{_datadir}/zm/cambozola.jar
-
 %dir %attr(770,root,http) /var/log/zm
-
 %dir %attr(770,root,http) /var/run/zm
 
 %files X10
