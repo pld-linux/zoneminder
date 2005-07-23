@@ -25,7 +25,6 @@ patch1:		%{name}-init.patch
 Patch3:		%{name}-mysql41.patch
 Patch4:		%{name}-pbar.patch
 Patch5:		%{name}-makefile-nochown
-
 URL:		http://www.zoneminder.com/
 BuildRequires:	autoconf
 BuildRequires:	automake
@@ -95,24 +94,24 @@ parametrów u¿ywanych do sterowania kamer± na protokó³ konkretnej
 kamery.
 
 %package cambozola
-Summary:    content/multipart streamed jpeg viewer
-Summary(pl):    przegl±darka obrazów jpeg content/multipart
-Group:      Libraries
+Summary:	content/multipart streamed JPEG viewer
+Summary(pl):	Przegl±darka obrazów JPEG content/multipart
+Group:		Libraries
 ### ???
 
 %description cambozola
-Cambozola is a very simple (cheesey!) viewer for multipart jpeg streams 
-that are often pumped out by a streaming webcam server, sending over 
-multiple images per second. Netscape will display and refresh these 
-automatically, but Internet Explorer and other browsers do not - they 
-will only display the first image.
+Cambozola is a very simple (cheesey!) viewer for multipart JPEG
+streams that are often pumped out by a streaming webcam server,
+sending over multiple images per second. Netscape will display and
+refresh these automatically, but Internet Explorer and other browsers
+do not - they will only display the first image.
 
 %description cambozola -l pl
-Cambozola jest prost± przegl±dark± dla wieloczê¶ciowych strumieni jpeg,
-czêsto udostêpnianych przez kamery web, wysy³aj±ce wiele obrazów 
-na sekundê. Netscape wy¶wietli i bêdzie od¶wierzaæ podgl±d automatycznie,
-ale Internet Explorer i inne przegl±darki nie - wy¶wietl± tylko pierwszy
-obrazek.
+Cambozola jest prost± przegl±dark± dla wieloczê¶ciowych strumieni
+JPEG, czêsto udostêpnianych przez kamery WWW, wysy³aj±ce wiele obrazów
+na sekundê. Netscape wy¶wietli i bêdzie od¶wie¿aæ podgl±d
+automatycznie, ale Internet Explorer i inne przegl±darki nie -
+wy¶wietl± tylko pierwszy obrazek.
 
 %prep
 %setup -q
@@ -137,7 +136,7 @@ obrazek.
 	--with-cgidir=%{_datadir}/%{name}/cgi-bin
 
 cp %{SOURCE1} zmconfig.txt
-perl zmconfig.pl -f zmconfig.txt -noi -nod
+%{__perl} zmconfig.pl -f zmconfig.txt -noi -nod
 
 %{__make}
 
