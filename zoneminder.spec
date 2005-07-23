@@ -94,6 +94,26 @@ To jest zestaw przyk³adowych skryptów do sterowania kamerami klasy
 parametrów u¿ywanych do sterowania kamer± na protokó³ konkretnej
 kamery.
 
+%package cambozola
+Summary:    content/multipart streamed jpeg viewer
+Summary(pl):    przegl±darka obrazów jpeg content/multipart
+Group:      Libraries
+### ???
+
+%description cambozola
+Cambozola is a very simple (cheesey!) viewer for multipart jpeg streams 
+that are often pumped out by a streaming webcam server, sending over 
+multiple images per second. Netscape will display and refresh these 
+automatically, but Internet Explorer and other browsers do not - they 
+will only display the first image.
+
+%description cambozola -l pl
+Cambozola jest prost± przegl±dark± dla wieloczê¶ciowych strumieni jpeg,
+czêsto udostêpnianych przez kamery web, wysy³aj±ce wiele obrazów 
+na sekundê. Netscape wy¶wietli i bêdzie od¶wierzaæ podgl±d automatycznie,
+ale Internet Explorer i inne przegl±darki nie - wy¶wietl± tylko pierwszy
+obrazek.
+
 %prep
 %setup -q
 %patch0 -p1
@@ -219,7 +239,7 @@ fi
 %attr(640,root,http) %{_datadir}/zm/*.css
 %attr(640,root,http) %{_datadir}/zm/*.ico
 %attr(640,root,http) %{_datadir}/zm/*.php
-%attr(640,root,http) %{_datadir}/zm/cambozola.jar
+#%attr(640,root,http) %{_datadir}/zm/cambozola.jar
 %dir %attr(770,root,http) /var/log/zm
 %dir %attr(770,root,http) /var/run/zm
 
@@ -235,3 +255,7 @@ fi
 %attr(755,root,root) %{_bindir}/zmcontrol-kx-hcm10.pl
 %attr(755,root,root) %{_bindir}/zmcontrol-pelco-d.pl
 %attr(755,root,root) %{_bindir}/zmcontrol-visca.pl
+
+%files cambozola
+%defattr(644,root,root,755)
+%attr(640,root,http) %{_datadir}/zm/cambozola.jar
