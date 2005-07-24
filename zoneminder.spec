@@ -5,7 +5,7 @@ Summary:	Zone Minder is a software motion detector with nice WWW GUI
 Summary(pl):	Zone Minder - programowy wykrywacz ruchu z mi³ym GUI przez WWW
 Name:		zm
 Version:	1.21.3
-Release:	0.1
+Release:	0.2
 Group:		Applications/Graphics
 License:	GPL v2
 Source0:	http://www.zoneminder.com/fileadmin/downloads/%{name}-%{version}.tar.gz
@@ -197,7 +197,7 @@ if [ "$1" = "0" ]; then
 	/etc/rc.d/init.d/zm stop
 	/sbin/chkconfig --del zm
 fi
-
+	
 %post
 /sbin/chkconfig --add zm
 
@@ -238,9 +238,23 @@ fi
 %attr(640,root,http) %{_datadir}/zm/*.css
 %attr(640,root,http) %{_datadir}/zm/*.ico
 %attr(640,root,http) %{_datadir}/zm/*.php
+%exclude %{_datadir}/zm/zm_lang_*.php
 #%attr(640,root,http) %{_datadir}/zm/cambozola.jar
 %dir %attr(770,root,http) /var/log/zm
 %dir %attr(770,root,http) /var/run/zm
+%lang(dk) %{_datadir}/zm/zm_lang_dk_dk.php
+%lang(de) %{_datadir}/zm/zm_lang_de_de.php
+%lang(gb) %{_datadir}/zm/zm_lang_en_gb.php
+%lang(en) %{_datadir}/zm/zm_lang_en_us.php
+%lang(fr) %{_datadir}/zm/zm_lang_fr_fr.php
+%lang(jp) %{_datadir}/zm/zm_lang_ja_jp.php
+%lang(pl) %{_datadir}/zm/zm_lang_pl_pl.php
+%lang(ru) %{_datadir}/zm/zm_lang_ru_ru.php
+%lang(nl) %{_datadir}/zm/zm_lang_nl_nl.php
+%lang(it) %{_datadir}/zm/zm_lang_it_it.php
+%lang(it) %{_datadir}/zm/zm_lang_it_it2.php
+%lang(es) %{_datadir}/zm/zm_lang_es_ar.php
+%lang(pt_br) %{_datadir}/zm/zm_lang_pt_br.php
 
 %files X10
 %defattr(644,root,root,755)
