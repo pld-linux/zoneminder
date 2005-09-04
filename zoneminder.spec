@@ -5,7 +5,7 @@ Summary:	Zone Minder is a software motion detector with nice WWW GUI
 Summary(pl):	Zone Minder - programowy wykrywacz ruchu z mi³ym GUI przez WWW
 Name:		zm
 Version:	1.21.3
-Release:	0.2
+Release:	1
 Group:		Applications/Graphics
 License:	GPL v2
 Source0:	http://www.zoneminder.com/fileadmin/downloads/%{name}-%{version}.tar.gz
@@ -171,11 +171,13 @@ install -d $RPM_BUILD_ROOT%{_prefix}/lib/zm/upgrade
 install db/zmalter-1.*.sql $RPM_BUILD_ROOT%{_prefix}/lib/zm/upgrade
 cat %{SOURCE3} | sed -e 's/^ZM_VERSION=.*$/ZM_VERSION=%{version}/' >zmdbupgrade
 install zmdbupgrade $RPM_BUILD_ROOT%{_prefix}/lib/zm/upgrade/zmdbupgrade
+
 for d in events images sounds temp; do
 	install -m 755 -d $RPM_BUILD_ROOT/var/lib/zm/$d
-rm -rf $RPM_BUILD_ROOT%{_prefix}/lib/zm/html/$d
-#ln -sf /var/lib/zm/$d $RPM_BUILD_ROOT%{_prefix}/lib/zm/html/$d
+	rm -rf $RPM_BUILD_ROOT%{_prefix}/lib/zm/html/$d
+	ln -sf /var/lib/zm/$d $RPM_BUILD_ROOT%{_datadir}/zm/$d
 done
+
 install -d $RPM_BUILD_ROOT/etc/rc.d/init.d
 install scripts/zm $RPM_BUILD_ROOT/etc/rc.d/init.d
 install -d $RPM_BUILD_ROOT%{_sysconfdir}/httpd/conf.d
@@ -197,7 +199,7 @@ if [ "$1" = "0" ]; then
 	/etc/rc.d/init.d/zm stop
 	/sbin/chkconfig --del zm
 fi
-	
+
 %post
 /sbin/chkconfig --add zm
 
@@ -206,7 +208,8 @@ fi
 %doc AUTHORS README
 %config(noreplace) %attr(640,root,http) %{_sysconfdir}/zm.conf
 %config(noreplace) %attr(644,root,root) %{_sysconfdir}/httpd/conf.d/zm.conf
-%config(noreplace) %attr(644,root,root) %{_sysconfdir}/logrotate.d/zm
+%config(noreplace) %attr(644,root,root) /etc/logrotate.d/zm
+%config(noreplace) %attr(640,root,http) %{_datadir}/zm/zm_config.php
 %attr(754,root,root) /etc/rc.d/init.d/zm
 %attr(4755,root,root) %{_bindir}/zmfix
 %attr(755,root,root) %{_bindir}/zma
@@ -225,6 +228,15 @@ fi
 %dir %attr(750,root,http)%{_prefix}/lib/zm
 %dir %{_prefix}/lib/zm/bin
 %dir %attr(750,root,http) %{_prefix}/lib/zm/html
+%dir %attr(750,root,http) %{_datadir}/zm/events
+%dir %attr(750,root,http) %{_datadir}/zm/images
+%dir %attr(750,root,http) %{_datadir}/zm/sounds
+%dir %attr(750,root,http) %{_datadir}/zm/temp
+%dir %attr(750,root,http) /var/lib/zm/
+%dir %attr(750,root,http) /var/lib/zm/events
+%dir %attr(750,root,http) /var/lib/zm/images
+%dir %attr(750,root,http) /var/lib/zm/sounds
+%dir %attr(750,root,http) /var/lib/zm/temp
 %dir %{_prefix}/lib/zm/init
 %dir %{_prefix}/lib/zm/upgrade
 %attr(4750,root,root) %{_prefix}/lib/zm/bin/*
@@ -239,6 +251,7 @@ fi
 %attr(640,root,http) %{_datadir}/zm/*.ico
 %attr(640,root,http) %{_datadir}/zm/*.php
 %exclude %{_datadir}/zm/zm_lang_*.php
+%exclude %{_datadir}/zm/zm_config.php
 #%attr(640,root,http) %{_datadir}/zm/cambozola.jar
 %dir %attr(770,root,http) /var/log/zm
 %dir %attr(770,root,http) /var/run/zm
