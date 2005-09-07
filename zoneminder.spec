@@ -31,14 +31,18 @@ BuildRequires:	automake
 #BuildRequires:	curl-devel
 BuildRequires:	ffmpeg-devel >= 0.4.8
 BuildRequires:	libjpeg-devel
+BuildRequires:	libstdc++-devel
 BuildRequires:	lame-libs-devel
 BuildRequires:	mysql-devel
 BuildRequires:	pcre-devel
+BuildRequires:	perl-DBI
 Requires:	pcre-static
 Requires:	perl-DBD-mysql
 Requires:	perl-MIME-tools
 Requires:	perl-Date-Manip
 Requires:	php
+Requires:	php-pcre
+Requires:	php-mysql
 BuildRoot:	%{tmpdir}/%{name}-%{version}-root-%(id -u -n)
 
 %description
@@ -136,6 +140,7 @@ wy¶wietl± tylko pierwszy obrazek.
 	--with-cgidir=%{_datadir}/%{name}/cgi-bin
 
 cp %{SOURCE1} zmconfig.txt
+
 %{__perl} zmconfig.pl -f zmconfig.txt -noi -nod
 
 %{__make}
