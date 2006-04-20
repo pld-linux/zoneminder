@@ -39,7 +39,6 @@ BuildRequires:	pcre-devel
 BuildRequires:	perl-DBI
 BuildRequires:	rpmbuild(macros) >= 1.268
 Requires(post,preun):	/sbin/chkconfig
-Requires:	pcre-static
 Requires:	perl-DBD-mysql
 Requires:	perl-Date-Manip
 Requires:	perl-MIME-tools
