@@ -1,13 +1,14 @@
 # ToDo:
 # -move cambozola to separate spec ?
+# - no globs for suid/sgid files
 #
 Summary:	Zone Minder is a software motion detector with nice WWW GUI
 Summary(pl):	Zone Minder - programowy wykrywacz ruchu z mi³ym GUI przez WWW
 Name:		zm
 Version:	1.21.3
 Release:	1
-Group:		Applications/Graphics
 License:	GPL v2
+Group:		Applications/Graphics
 Source0:	http://www.zoneminder.com/fileadmin/downloads/%{name}-%{version}.tar.gz
 # Source0-md5:	59e2be0fe4c5a75c2045484545ad3f43
 Source1:	%{name}-config.txt
@@ -30,19 +31,22 @@ BuildRequires:	autoconf
 BuildRequires:	automake
 #BuildRequires:	curl-devel
 BuildRequires:	ffmpeg-devel >= 0.4.8
+BuildRequires:	lame-libs-devel
 BuildRequires:	libjpeg-devel
 BuildRequires:	libstdc++-devel
-BuildRequires:	lame-libs-devel
 BuildRequires:	mysql-devel
 BuildRequires:	pcre-devel
 BuildRequires:	perl-DBI
+BuildRequires:	rpmbuild(macros) >= 1.268
+Requires(post,preun):	/sbin/chkconfig
 Requires:	pcre-static
 Requires:	perl-DBD-mysql
-Requires:	perl-MIME-tools
 Requires:	perl-Date-Manip
+Requires:	perl-MIME-tools
 Requires:	php
-Requires:	php-pcre
 Requires:	php-mysql
+Requires:	php-pcre
+Requires:	rc-scripts
 BuildRoot:	%{tmpdir}/%{name}-%{version}-root-%(id -u -n)
 
 %description
@@ -199,14 +203,14 @@ install db/zmschema.sql	$RPM_BUILD_ROOT%{_prefix}/lib/zm/init
 %clean
 rm -rf $RPM_BUILD_ROOT
 
-%preun
-if [ "$1" = "0" ]; then
-	/etc/rc.d/init.d/zm stop
-	/sbin/chkconfig --del zm
-fi
-
 %post
 /sbin/chkconfig --add zm
+
+%preun
+if [ "$1" = "0" ]; then
+	%service zm stop
+	/sbin/chkconfig --del zm
+fi
 
 %files
 %defattr(644,root,root,755)
