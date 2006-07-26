@@ -1,6 +1,7 @@
-# ToDo:
-# -move cambozola to separate spec ?
+# TODO:
+# - move cambozola to separate spec ?
 # - no globs for suid/sgid files
+# - webapps
 #
 Summary:	Zone Minder is a software motion detector with nice WWW GUI
 Summary(pl):	Zone Minder - programowy wykrywacz ruchu z mi³ym GUI przez WWW
@@ -215,8 +216,8 @@ fi
 %defattr(644,root,root,755)
 %doc AUTHORS README
 %config(noreplace) %attr(640,root,http) %{_sysconfdir}/zm.conf
-%config(noreplace) %attr(644,root,root) %{_sysconfdir}/httpd/conf.d/zm.conf
-%config(noreplace) %attr(644,root,root) /etc/logrotate.d/zm
+%config(noreplace) %{_sysconfdir}/httpd/conf.d/zm.conf
+%config(noreplace) /etc/logrotate.d/zm
 %config(noreplace) %attr(640,root,http) %{_datadir}/zm/zm_config.php
 %attr(754,root,root) /etc/rc.d/init.d/zm
 %attr(4755,root,root) %{_bindir}/zmfix
