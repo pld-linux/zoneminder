@@ -43,10 +43,10 @@ Requires(post,preun):	/sbin/chkconfig
 Requires:	perl-DBD-mysql
 Requires:	perl-Date-Manip
 Requires:	perl-MIME-tools
-Requires:	php
-Requires:	php-mysql
-Requires:	php-pcre
+Requires:	php(mysql)
+Requires:	php(pcre)
 Requires:	rc-scripts
+Requires:	webserver(php)
 BuildRoot:	%{tmpdir}/%{name}-%{version}-root-%(id -u -n)
 
 %description
