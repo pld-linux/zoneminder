@@ -4,7 +4,7 @@
 # - webapps
 #
 Summary:	Zone Minder is a software motion detector with nice WWW GUI
-Summary(pl.UTF-8):   Zone Minder - programowy wykrywacz ruchu z miłym GUI przez WWW
+Summary(pl.UTF-8):	Zone Minder - programowy wykrywacz ruchu z miłym GUI przez WWW
 Name:		zm
 Version:	1.21.3
 Release:	1
@@ -67,7 +67,7 @@ różnymi kamerami USB i sieciowymi kamerami IP.
 
 %package X10
 Summary:	Controls the monitoring of the X10 interface
-Summary(pl.UTF-8):   Sterowanie monitorowaniem interfejsu X10
+Summary(pl.UTF-8):	Sterowanie monitorowaniem interfejsu X10
 Group:		Libraries
 Requires:	%{name} = %{version}-%{release}
 Requires:	perl-X10
@@ -83,7 +83,7 @@ ZM na podstawie idei sygnałów X10.
 
 %package control
 Summary:	Some scripts for control Pan/Tilt/Zoom class cameras
-Summary(pl.UTF-8):   Skrypty do sterowania kamerami klasy Pan/Tilt/Zoom
+Summary(pl.UTF-8):	Skrypty do sterowania kamerami klasy Pan/Tilt/Zoom
 Group:		Libraries
 Requires:	%{name} = %{version}-%{release}
 Requires:	perl-Device-SerialPort
@@ -103,7 +103,7 @@ kamery.
 
 %package cambozola
 Summary:	content/multipart streamed JPEG viewer
-Summary(pl.UTF-8):   Przeglądarka obrazów JPEG content/multipart
+Summary(pl.UTF-8):	Przeglądarka obrazów JPEG content/multipart
 Group:		Libraries
 ### ???
 
