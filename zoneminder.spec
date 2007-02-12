@@ -4,7 +4,7 @@
 # - webapps
 #
 Summary:	Zone Minder is a software motion detector with nice WWW GUI
-Summary(pl):	Zone Minder - programowy wykrywacz ruchu z mi³ym GUI przez WWW
+Summary(pl.UTF-8):   Zone Minder - programowy wykrywacz ruchu z miÅ‚ym GUI przez WWW
 Name:		zm
 Version:	1.21.3
 Release:	1
@@ -57,17 +57,17 @@ to run on kernels which support the Video For Linux (V4L) interface
 and has been tested with cameras attached to BTTV cards, various USB
 cameras and IP network cameras.
 
-%description -l pl
-ZoneMinder to zestaw aplikacji maj±cych dostarczyæ kompletne
-rozwi±zanie pozwalaj±ce na przechwytywanie, analizê, nagrywanie i
-monitorowanie kamer pod³±czonych do maszyny z Linuksem. Jest
-zaprojektowany do dzia³ania z j±drami obs³uguj±cymi interfejs Video
-For Linux (V4L) i by³ testowany z kamerami pod³±czonymi do kart BTTV,
-ró¿nymi kamerami USB i sieciowymi kamerami IP.
+%description -l pl.UTF-8
+ZoneMinder to zestaw aplikacji majÄ…cych dostarczyÄ‡ kompletne
+rozwiÄ…zanie pozwalajÄ…ce na przechwytywanie, analizÄ™, nagrywanie i
+monitorowanie kamer podÅ‚Ä…czonych do maszyny z Linuksem. Jest
+zaprojektowany do dziaÅ‚ania z jÄ…drami obsÅ‚ugujÄ…cymi interfejs Video
+For Linux (V4L) i byÅ‚ testowany z kamerami podÅ‚Ä…czonymi do kart BTTV,
+rÃ³Å¼nymi kamerami USB i sieciowymi kamerami IP.
 
 %package X10
 Summary:	Controls the monitoring of the X10 interface
-Summary(pl):	Sterowanie monitorowaniem interfejsu X10
+Summary(pl.UTF-8):   Sterowanie monitorowaniem interfejsu X10
 Group:		Libraries
 Requires:	%{name} = %{version}-%{release}
 Requires:	perl-X10
@@ -77,13 +77,13 @@ This script controls the monitoring of the X10 interface and the
 consequent management of the ZM daemons based on the receipt of X10
 signals.
 
-%description X10 -l pl
-Te skrypty steruj± monitorowaniem interfejsu X10 i zarz±dzaj± demonami
-ZM na podstawie idei sygna³ów X10.
+%description X10 -l pl.UTF-8
+Te skrypty sterujÄ… monitorowaniem interfejsu X10 i zarzÄ…dzajÄ… demonami
+ZM na podstawie idei sygnaÅ‚Ã³w X10.
 
 %package control
 Summary:	Some scripts for control Pan/Tilt/Zoom class cameras
-Summary(pl):	Skrypty do sterowania kamerami klasy Pan/Tilt/Zoom
+Summary(pl.UTF-8):   Skrypty do sterowania kamerami klasy Pan/Tilt/Zoom
 Group:		Libraries
 Requires:	%{name} = %{version}-%{release}
 Requires:	perl-Device-SerialPort
@@ -95,15 +95,15 @@ Pan/Tilt/Zoom class cameras. Each script converts a set of standard
 parameters used for camera control into the actual protocol commands
 sent to the camera.
 
-%description control -l pl
-To jest zestaw przyk³adowych skryptów do sterowania kamerami klasy
-"Pan/Tilt/Zoom". Ka¿dy skrypt konwertuje zestaw standardowych
-parametrów u¿ywanych do sterowania kamer± na protokó³ konkretnej
+%description control -l pl.UTF-8
+To jest zestaw przykÅ‚adowych skryptÃ³w do sterowania kamerami klasy
+"Pan/Tilt/Zoom". KaÅ¼dy skrypt konwertuje zestaw standardowych
+parametrÃ³w uÅ¼ywanych do sterowania kamerÄ… na protokÃ³Å‚ konkretnej
 kamery.
 
 %package cambozola
 Summary:	content/multipart streamed JPEG viewer
-Summary(pl):	Przegl±darka obrazów JPEG content/multipart
+Summary(pl.UTF-8):   PrzeglÄ…darka obrazÃ³w JPEG content/multipart
 Group:		Libraries
 ### ???
 
@@ -114,12 +114,12 @@ sending over multiple images per second. Netscape will display and
 refresh these automatically, but Internet Explorer and other browsers
 do not - they will only display the first image.
 
-%description cambozola -l pl
-Cambozola jest prost± przegl±dark± dla wieloczê¶ciowych strumieni
-JPEG, czêsto udostêpnianych przez kamery WWW, wysy³aj±ce wiele obrazów
-na sekundê. Netscape wy¶wietli i bêdzie od¶wie¿aæ podgl±d
-automatycznie, ale Internet Explorer i inne przegl±darki nie -
-wy¶wietl± tylko pierwszy obrazek.
+%description cambozola -l pl.UTF-8
+Cambozola jest prostÄ… przeglÄ…darkÄ… dla wieloczÄ™Å›ciowych strumieni
+JPEG, czÄ™sto udostÄ™pnianych przez kamery WWW, wysyÅ‚ajÄ…ce wiele obrazÃ³w
+na sekundÄ™. Netscape wyÅ›wietli i bÄ™dzie odÅ›wieÅ¼aÄ‡ podglÄ…d
+automatycznie, ale Internet Explorer i inne przeglÄ…darki nie -
+wyÅ›wietlÄ… tylko pierwszy obrazek.
 
 %prep
 %setup -q
