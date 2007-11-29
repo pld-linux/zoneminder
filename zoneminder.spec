@@ -30,9 +30,10 @@ BuildRequires:	libjpeg-devel
 BuildRequires:	libstdc++-devel
 BuildRequires:	mysql-devel
 BuildRequires:	pcre-devel
-BuildRequires:	perl-Date-Manip
-BuildRequires:	perl-DBI
 BuildRequires:	perl-DBD-mysql
+BuildRequires:	perl-DBI
+BuildRequires:	perl-Date-Manip
+BuildRequires:	perl-libwww
 BuildRequires:	rpmbuild(macros) >= 1.268
 Requires(post,preun):	/sbin/chkconfig
 Requires:	perl-DBD-mysql
