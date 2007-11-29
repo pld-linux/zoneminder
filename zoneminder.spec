@@ -176,9 +176,9 @@ rm -f $RPM_BUILD_ROOT%{_bindir}/zmx10.pl
 install -m 755 -d $RPM_BUILD_ROOT%{_localstatedir}/log/zoneminder
 for dir in events images temp
 do
-        install -m 755 -d $RPM_BUILD_ROOT%{_localstatedir}/%{_lib}/zoneminder/$dir
+        install -m 755 -d $RPM_BUILD_ROOT%{_localstatedir}/lib/zoneminder/$dir
         rm -rf $RPM_BUILD_ROOT%{_datadir}/zoneminder/www/$dir
-        ln -sf ../../../..%{_localstatedir}/%{_lib}/zoneminder/$dir $RPM_BUILD_ROOT%{_datadir}/zoneminder/www/$dir
+        ln -sf ../../../..%{_localstatedir}/lib/zoneminder/$dir $RPM_BUILD_ROOT%{_datadir}/zoneminder/www/$dir
 done
 install -D -m 755 scripts/zm $RPM_BUILD_ROOT%{_initrddir}/zoneminder
 install -D -m 644 cambozola-*/dist/cambozola.jar $RPM_BUILD_ROOT%{_datadir}/zoneminder/www/cambozola.jar
@@ -226,11 +226,11 @@ fi
 %dir %attr(750,root,http) %{_datadir}/zoneminder/images
 %dir %attr(750,root,http) %{_datadir}/zoneminder/sounds
 %dir %attr(750,root,http) %{_datadir}/zoneminder/temp
-%dir %attr(750,root,http) /var/%{_lib}/zoneminder/
-%dir %attr(750,root,http) /var/%{_lib}/zoneminder/events
-%dir %attr(750,root,http) /var/%{_lib}/zoneminder/images
-#%dir %attr(750,root,http) /var/%{_lib}/zoneminder/sounds
-%dir %attr(750,root,http) /var/%{_lib}/zoneminder/temp
+%dir %attr(750,root,http) /var/lib/zoneminder/
+%dir %attr(750,root,http) /var/lib/zoneminder/events
+%dir %attr(750,root,http) /var/lib/zoneminder/images
+#%dir %attr(750,root,http) /var/lib/zoneminder/sounds
+%dir %attr(750,root,http) /var/lib/zoneminder/temp
 #%dir %{_prefix}/%{_lib}/zoneminder/init
 #%dir %{_prefix}/%{_lib}/zoneminder/upgrade
 #%attr(4750,root,root) %{_prefix}/%{_lib}/zoneminder/bin/*
