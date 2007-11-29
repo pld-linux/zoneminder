@@ -18,8 +18,6 @@ Source1:	http://www.charliemouse.com/code/cambozola/cambozola-0.68.tar.gz
 Source2:	%{name}-init
 Source3:	%{name}.conf
 Source4:	%{name}-conf.httpd
-# http://www.charliemouse.com/code/cambozola/
-Source5:	http://www.charliemouse.com/code/cambozola/cambozola-0.68.tar.gz
 # Source5-md5:	e4fac8b6ee94c9075b14bb95be4f860b
 Source6:	%{name}-logrotate_d
 Patch0:		%{name}-fedora.patch
@@ -101,25 +99,6 @@ To jest zestaw przykładowych skryptów do sterowania kamerami klasy
 parametrów używanych do sterowania kamerą na protokół konkretnej
 kamery.
 
-%package cambozola
-Summary:	content/multipart streamed JPEG viewer
-Summary(pl.UTF-8):	Przeglądarka obrazów JPEG content/multipart
-Group:		Libraries
-
-%description cambozola
-Cambozola is a very simple (cheesey!) viewer for multipart JPEG
-streams that are often pumped out by a streaming webcam server,
-sending over multiple images per second. Netscape will display and
-refresh these automatically, but Internet Explorer and other browsers
-do not - they will only display the first image.
-
-%description cambozola -l pl.UTF-8
-Cambozola jest prostą przeglądarką dla wieloczęściowych strumieni
-JPEG, często udostępnianych przez kamery WWW, wysyłające wiele obrazów
-na sekundę. Netscape wyświetli i będzie odświeżać podgląd
-automatycznie, ale Internet Explorer i inne przeglądarki nie -
-wyświetlą tylko pierwszy obrazek.
-
 %prep
 %setup -q -n ZoneMinder-%{version}
 %patch0 -p1
@@ -150,7 +129,7 @@ EOF
 	--with-lame=%{_prefix}	\
 	--with-webgroup=http	\
 	--with-webuser=http		 \
-	--with-webdir=%{_datadir}/zoneminder	\
+	--with-webdir=%{_datadir}/zoneminder/www	\
 	--with-cgidir=%{_datadir}/zoneminder/cgi-bin
 
 %{__make}
@@ -163,7 +142,7 @@ gunzip -c %{SOURCE1} | tar xf - --wildcards cambozola-*/dist/cambozola.jar
 
 %install
 rm -rf $RPM_BUILD_ROOT
-install -d $RPM_BUILD_ROOT{%{_localstatedir}/run,/etc/logrotate.d,%{_datadir}/zoneminder/www}
+install -d $RPM_BUILD_ROOT{%{_localstatedir}/run,/etc/logrotate.d}
 
 %{__make} install \
 	DESTDIR=$RPM_BUILD_ROOT \
@@ -199,11 +178,10 @@ fi
 
 %files
 %defattr(644,root,root,755)
-%doc AUTHORS README
+%doc AUTHORS README README.txt
 %config(noreplace) %attr(640,root,http) %{_sysconfdir}/zm.conf
 %config(noreplace) %{_sysconfdir}/httpd/conf.d/zoneminder.conf
 %config(noreplace) /etc/logrotate.d/zm
-#%config(noreplace) %attr(640,root,http) %{_datadir}/zoneminder/zm_config.php
 %attr(754,root,root) /etc/rc.d/init.d/zoneminder
 %attr(4755,root,root) %{_bindir}/zmfix
 %attr(755,root,root) %{_bindir}/zma
@@ -219,55 +197,23 @@ fi
 %attr(755,root,root) %{_bindir}/zmupdate.pl
 %attr(755,root,root) %{_bindir}/zmvideo.pl
 %attr(755,root,root) %{_bindir}/zmwatch.pl
-#%dir %attr(750,root,http)%{_prefix}/%{_lib}/zm
-#%dir %{_prefix}/%{_lib}/zoneminder/bin
-#%dir %attr(750,root,http) %{_prefix}/%{_lib}/zoneminder/html
-%dir %attr(750,root,http) %{_datadir}/zoneminder/events
-%dir %attr(750,root,http) %{_datadir}/zoneminder/images
-%dir %attr(750,root,http) %{_datadir}/zoneminder/sounds
-%dir %attr(750,root,http) %{_datadir}/zoneminder/temp
-%dir %attr(750,root,http) /var/lib/zoneminder/
-%dir %attr(750,root,http) /var/lib/zoneminder/events
-%dir %attr(750,root,http) /var/lib/zoneminder/images
-#%dir %attr(750,root,http) /var/lib/zoneminder/sounds
-%dir %attr(750,root,http) /var/lib/zoneminder/temp
-#%dir %{_prefix}/%{_lib}/zoneminder/init
-#%dir %{_prefix}/%{_lib}/zoneminder/upgrade
-#%attr(4750,root,root) %{_prefix}/%{_lib}/zoneminder/bin/*
-#%{_prefix}/%{_lib}/zoneminder/init/*
-#%{_prefix}/%{_lib}/zoneminder/upgrade/zm*
-%dir %attr(750,root,http) %{_datadir}/zoneminder
-%dir %attr(750,root,http) %{_datadir}/zoneminder/cgi-bin
-%dir %attr(750,root,http) %{_datadir}/zoneminder/graphics
-%attr(750,root,http) %{_datadir}/zoneminder/cgi-bin/*
-%attr(640,root,http) %{_datadir}/zoneminder/graphics/*
-%attr(640,root,http) %{_datadir}/zoneminder/*.css
-%attr(640,root,http) %{_datadir}/zoneminder/*.ico
-%attr(640,root,http) %{_datadir}/zoneminder/*.php
-%exclude %{_datadir}/zoneminder/zm_lang_*.php
-%exclude %{_datadir}/zoneminder/zm_config.php
-#%attr(640,root,http) %{_datadir}/zoneminder/cambozola.jar
-#%dir %attr(770,root,http) /var/log/zm
-#%dir %attr(770,root,http) /var/run/zm
-%lang(dk) %{_datadir}/zoneminder/zm_lang_dk_dk.php
-%lang(de) %{_datadir}/zoneminder/zm_lang_de_de.php
-%lang(en_GB) %{_datadir}/zoneminder/zm_lang_en_gb.php
-%lang(en) %{_datadir}/zoneminder/zm_lang_en_us.php
-%lang(fr) %{_datadir}/zoneminder/zm_lang_fr_fr.php
-%lang(ja) %{_datadir}/zoneminder/zm_lang_ja_jp.php
-%lang(pl) %{_datadir}/zoneminder/zm_lang_pl_pl.php
-%lang(ru) %{_datadir}/zoneminder/zm_lang_ru_ru.php
-%lang(nl) %{_datadir}/zoneminder/zm_lang_nl_nl.php
-%lang(it) %{_datadir}/zoneminder/zm_lang_it_it.php
-%lang(es) %{_datadir}/zoneminder/zm_lang_es_ar.php
-%lang(pt_BR) %{_datadir}/zoneminder/zm_lang_pt_br.php
-
+%dir %{_datadir}/zoneminder
+%dir %{_datadir}/zoneminder/cgi-bin
+%attr(755,root,root) %{_datadir}/zoneminder/cgi-bin/*
+%{_datadir}/zoneminder/db
 %dir %{_datadir}/zoneminder/www
+%{_datadir}/zoneminder/www/*.*
 %dir %{_datadir}/zoneminder/www/events
 %dir %{_datadir}/zoneminder/www/images
+%dir %{_datadir}/zoneminder/www/sounds
 %dir %{_datadir}/zoneminder/www/temp
+%{_datadir}/zoneminder/www/graphics
+%{_datadir}/zoneminder/www/sounds
 
-%{_datadir}/zoneminder/db
+%dir %attr(750,root,http) /var/lib/zoneminder
+%dir %attr(750,root,http) /var/lib/zoneminder/events
+%dir %attr(750,root,http) /var/lib/zoneminder/images
+%dir %attr(750,root,http) /var/lib/zoneminder/temp
 
 %{perl_vendorlib}/ZoneMinder
 %{perl_vendorlib}/*.pm
@@ -275,19 +221,12 @@ fi
 
 %files X10
 %defattr(644,root,root,755)
-#%attr(755,root,root) %{_bindir}/zmx10.pl
 %attr(755,root,root) %{_bindir}/zmcontrol-axis-v2.pl
 %attr(755,root,root) %{_bindir}/zmcontrol-pelco-p.pl
 
 %files control
 %defattr(644,root,root,755)
-#%{_prefix}/%{_lib}/zoneminder/init/zmcontrol.sql
-#%attr(755,root,root) %{_bindir}/zmcontrol-kx-hcm10.pl
 %attr(755,root,root) %{_bindir}/zmcontrol-pelco-d.pl
 %attr(755,root,root) %{_bindir}/zmcontrol-visca.pl
 %attr(755,root,root) %{_bindir}/zmcontrol-ncs370.pl
 %attr(755,root,root) %{_bindir}/zmcontrol-panasonic-ip.pl
-
-%files cambozola
-%defattr(644,root,root,755)
-%attr(640,root,http) %{_datadir}/zoneminder/www/cambozola.jar
