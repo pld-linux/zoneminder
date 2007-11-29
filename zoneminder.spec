@@ -210,9 +210,9 @@ fi
 %{_datadir}/zoneminder/www/sounds
 
 %dir %attr(750,root,http) /var/lib/zoneminder
-%dir %attr(750,root,http) /var/lib/zoneminder/events
-%dir %attr(750,root,http) /var/lib/zoneminder/images
-%dir %attr(750,root,http) /var/lib/zoneminder/temp
+%dir %attr(770,root,http) /var/lib/zoneminder/events
+%dir %attr(770,root,http) /var/lib/zoneminder/images
+%dir %attr(770,root,http) /var/lib/zoneminder/temp
 
 %{perl_vendorlib}/ZoneMinder
 %{perl_vendorlib}/*.pm
