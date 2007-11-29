@@ -189,12 +189,12 @@ install %{SOURCE6} $RPM_BUILD_ROOT%{_sysconfdir}/logrotate.d/%{name}
 rm -rf $RPM_BUILD_ROOT
 
 %post
-/sbin/chkconfig --add zm
+/sbin/chkconfig --add zoneminder
 
 %preun
 if [ "$1" = "0" ]; then
-	%service zm stop
-	/sbin/chkconfig --del zm
+	%service zoneminder stop
+	/sbin/chkconfig --del zoneminder
 fi
 
 %files
