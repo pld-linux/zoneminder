@@ -30,6 +30,7 @@ BuildRequires:	libjpeg-devel
 BuildRequires:	libstdc++-devel
 BuildRequires:	mysql-devel
 BuildRequires:	pcre-devel
+BuildRequires:	perl-devel
 BuildRequires:	perl-DBD-mysql
 BuildRequires:	perl-DBI
 BuildRequires:	perl-Date-Manip
