@@ -141,7 +141,7 @@ gunzip -c %{SOURCE1} | tar xf - --wildcards cambozola-*/dist/cambozola.jar
 
 %install
 rm -rf $RPM_BUILD_ROOT
-install -d $RPM_BUILD_ROOT{%{_localstatedir}/run,/etc/logrotate.d}
+install -d $RPM_BUILD_ROOT{%{_localstatedir}/{run,log/zoneminder},/etc/logrotate.d}
 
 %{__make} install \
 	DESTDIR=$RPM_BUILD_ROOT \
@@ -209,6 +209,7 @@ fi
 %{_datadir}/zoneminder/www/graphics
 %{_datadir}/zoneminder/www/sounds
 
+%dir %attr(770,root,http) /var/log/zoneminder
 %dir %attr(750,root,http) /var/lib/zoneminder
 %dir %attr(770,root,http) /var/lib/zoneminder/events
 %dir %attr(770,root,http) /var/lib/zoneminder/images
