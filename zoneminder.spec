@@ -17,9 +17,7 @@ Source1:	http://www.charliemouse.com/code/cambozola/cambozola-0.68.tar.gz
 # Source1-md5:	e4fac8b6ee94c9075b14bb95be4f860b
 Source2:	%{name}-init
 Source3:	%{name}.conf
-Source4:	%{name}-conf.httpd
-# Source5-md5:	e4fac8b6ee94c9075b14bb95be4f860b
-Source6:	%{name}-logrotate_d
+Source4:	%{name}-logrotate_d
 Patch0:		%{name}-fedora.patch
 Patch1:		%{name}-c++.patch
 URL:		http://www.zoneminder.com/
@@ -162,7 +160,7 @@ done
 install -D -m 755 scripts/zm $RPM_BUILD_ROOT%{_initrddir}/zoneminder
 install -D -m 644 cambozola-*/dist/cambozola.jar $RPM_BUILD_ROOT%{_datadir}/zoneminder/www/cambozola.jar
 install -D -m 644 %{SOURCE3} $RPM_BUILD_ROOT%{_sysconfdir}/httpd/conf.d/zoneminder.conf
-install %{SOURCE6} $RPM_BUILD_ROOT%{_sysconfdir}/logrotate.d/%{name}
+install %{SOURCE4} $RPM_BUILD_ROOT%{_sysconfdir}/logrotate.d/%{name}
 
 %clean
 rm -rf $RPM_BUILD_ROOT
@@ -181,7 +179,7 @@ fi
 %doc AUTHORS README README.txt
 %config(noreplace) %attr(640,root,http) %{_sysconfdir}/zm.conf
 %config(noreplace) %{_sysconfdir}/httpd/conf.d/zoneminder.conf
-%config(noreplace) /etc/logrotate.d/zm
+%config(noreplace) /etc/logrotate.d/%{name}
 %attr(754,root,root) /etc/rc.d/init.d/zoneminder
 %attr(4755,root,root) %{_bindir}/zmfix
 %attr(755,root,root) %{_bindir}/zma
