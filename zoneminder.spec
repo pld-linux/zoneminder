@@ -251,16 +251,16 @@ fi
 #%dir %attr(770,root,http) /var/run/zm
 %lang(dk) %{_datadir}/zoneminder/zm_lang_dk_dk.php
 %lang(de) %{_datadir}/zoneminder/zm_lang_de_de.php
-%lang(gb) %{_datadir}/zoneminder/zm_lang_en_gb.php
+%lang(en_GB) %{_datadir}/zoneminder/zm_lang_en_gb.php
 %lang(en) %{_datadir}/zoneminder/zm_lang_en_us.php
 %lang(fr) %{_datadir}/zoneminder/zm_lang_fr_fr.php
-%lang(jp) %{_datadir}/zoneminder/zm_lang_ja_jp.php
+%lang(ja) %{_datadir}/zoneminder/zm_lang_ja_jp.php
 %lang(pl) %{_datadir}/zoneminder/zm_lang_pl_pl.php
 %lang(ru) %{_datadir}/zoneminder/zm_lang_ru_ru.php
 %lang(nl) %{_datadir}/zoneminder/zm_lang_nl_nl.php
 %lang(it) %{_datadir}/zoneminder/zm_lang_it_it.php
 %lang(es) %{_datadir}/zoneminder/zm_lang_es_ar.php
-%lang(pt_br) %{_datadir}/zoneminder/zm_lang_pt_br.php
+%lang(pt_BR) %{_datadir}/zoneminder/zm_lang_pt_br.php
 
 %dir %{_datadir}/zoneminder/www
 %dir %{_datadir}/zoneminder/www/events
