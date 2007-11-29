@@ -20,6 +20,7 @@ Source3:	%{name}.conf
 Source4:	%{name}-logrotate_d
 Patch0:		%{name}-fedora.patch
 Patch1:		%{name}-c++.patch
+Patch2:		%{name}-shell.patch
 URL:		http://www.zoneminder.com/
 BuildRequires:	autoconf
 BuildRequires:	automake
@@ -101,6 +102,7 @@ kamery.
 %setup -q -n ZoneMinder-%{version}
 %patch0 -p1
 %patch1 -p1
+%patch2 -p1
 
 sed -i -e 's#chown#true#g' -e 's#chmod#true#g' *.am */*.am */*/*.am
 
