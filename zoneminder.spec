@@ -6,31 +6,24 @@
 Summary:	Zone Minder is a software motion detector with nice WWW GUI
 Summary(pl.UTF-8):	Zone Minder - programowy wykrywacz ruchu z miłym GUI przez WWW
 Name:		zm
-Version:	1.21.3
+Version:	1.22.3
 Release:	1
 License:	GPL v2
 Group:		Applications/Graphics
-Source0:	http://www.zoneminder.com/fileadmin/downloads/%{name}-%{version}.tar.gz
-# Source0-md5:	59e2be0fe4c5a75c2045484545ad3f43
-Source1:	%{name}-config.txt
+Source0:	http://www.zoneminder.com/downloads/ZoneMinder-%{version}.tar.gz
+# Source0-md5:	4677739d31807339d621e6e04bc62790
 Source2:	%{name}-init
 Source3:	%{name}-dbupgrade
 Source4:	%{name}-conf.httpd
 # http://www.charliemouse.com/code/cambozola/
-Source5:	http://www.charliemouse.com/code/cambozola/cambozola-0.65.tar.gz
-# Source5-md5:	a70a5e1c24e605d5ed74453d36c9519a
+Source5:	http://www.charliemouse.com/code/cambozola/cambozola-0.68.tar.gz
+# Source5-md5:	e4fac8b6ee94c9075b14bb95be4f860b
 Source6:	%{name}-zmalter-os
 Source7:	%{name}-logrotate_d
-Patch0:		%{name}-config.patch
-patch1:		%{name}-init.patch
-#Patch2:		%{name}-zmoptions.patch
-Patch3:		%{name}-mysql41.patch
-Patch4:		%{name}-pbar.patch
-Patch5:		%{name}-makefile-nochown
+Patch0:		%{name}-fedora.patch
 URL:		http://www.zoneminder.com/
 BuildRequires:	autoconf
 BuildRequires:	automake
-#BuildRequires:	curl-devel
 BuildRequires:	ffmpeg-devel >= 0.4.8
 BuildRequires:	lame-libs-devel
 BuildRequires:	libjpeg-devel
@@ -38,6 +31,7 @@ BuildRequires:	libstdc++-devel
 BuildRequires:	mysql-devel
 BuildRequires:	pcre-devel
 BuildRequires:	perl-DBI
+BuildRequires:	perl-DBD-mysql
 BuildRequires:	rpmbuild(macros) >= 1.268
 Requires(post,preun):	/sbin/chkconfig
 Requires:	perl-DBD-mysql
@@ -105,7 +99,6 @@ kamery.
 Summary:	content/multipart streamed JPEG viewer
 Summary(pl.UTF-8):	Przeglądarka obrazów JPEG content/multipart
 Group:		Libraries
-### ???
 
 %description cambozola
 Cambozola is a very simple (cheesey!) viewer for multipart JPEG
@@ -122,17 +115,18 @@ automatycznie, ale Internet Explorer i inne przeglądarki nie -
 wyświetlą tylko pierwszy obrazek.
 
 %prep
-%setup -q
+%setup -q -n ZoneMinder-%{version}
 %patch0 -p1
-%patch1 -p1
-%patch3 -p1
-#%patch4 -p1
-%patch5 -p0
 
 %build
 %{__aclocal}
 %{__autoconf}
 %configure \
+	--with-libarch=%{_lib} \
+%ifnarch %{ix86} %{x8664}
+	--disable-crashtrace \
+%endif
+	--disable-debug \
 	--without-optimizecpu	\
 	--with-mysql=%{_prefix} \
 	--enable-mp3lame	\
@@ -142,10 +136,6 @@ wyświetlą tylko pierwszy obrazek.
 	--with-webuser=http		 \
 	--with-webdir=%{_datadir}/%{name}	\
 	--with-cgidir=%{_datadir}/%{name}/cgi-bin
-
-cp %{SOURCE1} zmconfig.txt
-
-%{__perl} zmconfig.pl -f zmconfig.txt -noi -nod
 
 %{__make}
 
