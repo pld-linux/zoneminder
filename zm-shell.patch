@@ -1,0 +1,24 @@
+diff -urN ZoneMinder-1.22.3.org/scripts/zmpkg.pl ZoneMinder-1.22.3/scripts/zmpkg.pl
+--- ZoneMinder-1.22.3.org/scripts/zmpkg.pl	2006-10-20 11:31:40.000000000 +0200
++++ ZoneMinder-1.22.3/scripts/zmpkg.pl	2007-11-29 21:40:20.700829129 +0100
+@@ -254,7 +254,7 @@
+ 	my $suffix = "";
+ 	my $command = $prefix.$null_command.$suffix;
+ 	Debug( "Testing \"$command\"\n" );
+-	$command .= " >& /dev/null";
++	$command .= " > /dev/null 2>&1";
+ 	my $output = qx($command);
+ 	my $status = $? >> 8;
+ 	if ( !$status )
+diff -urN ZoneMinder-1.22.3.org/scripts/zmvideo.pl ZoneMinder-1.22.3/scripts/zmvideo.pl
+--- ZoneMinder-1.22.3.org/scripts/zmvideo.pl	2006-10-20 11:30:39.000000000 +0200
++++ ZoneMinder-1.22.3/scripts/zmvideo.pl	2007-11-29 21:40:31.998066798 +0100
+@@ -320,7 +320,7 @@
+ 		}
+ 
+ 
+-		my $command = ZM_PATH_FFMPEG." -y -r $frame_rate ".ZM_FFMPEG_INPUT_OPTIONS." -i %0".ZM_EVENT_IMAGE_DIGITS."d-capture.jpg -s $video_size ".ZM_FFMPEG_OUTPUT_OPTIONS." '$video_file' >& ffmpeg.log";
++		my $command = ZM_PATH_FFMPEG." -y -r $frame_rate ".ZM_FFMPEG_INPUT_OPTIONS." -i %0".ZM_EVENT_IMAGE_DIGITS."d-capture.jpg -s $video_size ".ZM_FFMPEG_OUTPUT_OPTIONS." '$video_file' > ffmpeg.log 2>&1";
+ 		Debug( $command."\n" );
+ 		my $output = qx($command);
+ 
