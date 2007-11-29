@@ -12,15 +12,18 @@ License:	GPL v2
 Group:		Applications/Graphics
 Source0:	http://www.zoneminder.com/downloads/ZoneMinder-%{version}.tar.gz
 # Source0-md5:	4677739d31807339d621e6e04bc62790
+# http://www.charliemouse.com/code/cambozola/
+Source1:	http://www.charliemouse.com/code/cambozola/cambozola-0.68.tar.gz
+# Source1-md5:	e4fac8b6ee94c9075b14bb95be4f860b
 Source2:	%{name}-init
-Source3:	%{name}-dbupgrade
+Source3:	%{name}.conf
 Source4:	%{name}-conf.httpd
 # http://www.charliemouse.com/code/cambozola/
 Source5:	http://www.charliemouse.com/code/cambozola/cambozola-0.68.tar.gz
 # Source5-md5:	e4fac8b6ee94c9075b14bb95be4f860b
-Source6:	%{name}-zmalter-os
-Source7:	%{name}-logrotate_d
+Source6:	%{name}-logrotate_d
 Patch0:		%{name}-fedora.patch
+Patch1:		%{name}-c++.patch
 URL:		http://www.zoneminder.com/
 BuildRequires:	autoconf
 BuildRequires:	automake
@@ -120,10 +123,20 @@ wyświetlą tylko pierwszy obrazek.
 %prep
 %setup -q -n ZoneMinder-%{version}
 %patch0 -p1
+%patch1 -p1
+
+sed -i -e 's#chown#true#g' -e 's#chmod#true#g' *.am */*.am */*/*.am
+
+cat <<EOF >> db/zm_create.sql.in
+update Config set Value = '/cgi-bin/zoneminder/nph-zms' where Name = 'ZM_PATH_ZMS';
+use mysql;
+grant select,insert,update,delete on zm.* to 'zmuser'@localhost identified by 'zmpass';
+EOF
 
 %build
 %{__aclocal}
 %{__autoconf}
+%{__automake}
 %configure \
 	--with-libarch=%{_lib} \
 %ifnarch %{ix86} %{x8664}
@@ -137,61 +150,40 @@ wyświetlą tylko pierwszy obrazek.
 	--with-lame=%{_prefix}	\
 	--with-webgroup=http	\
 	--with-webuser=http		 \
-	--with-webdir=%{_datadir}/%{name}	\
-	--with-cgidir=%{_datadir}/%{name}/cgi-bin
+	--with-webdir=%{_datadir}/zoneminder	\
+	--with-cgidir=%{_datadir}/zoneminder/cgi-bin
 
 %{__make}
 
+gunzip -c %{SOURCE1} | tar xf - --wildcards cambozola-*/dist/cambozola.jar
+
+%{__perl} -pi \
+		-e 's/(ZM_WEB_USER=).*$/${1}http/;' \
+		-e 's/(ZM_WEB_GROUP=).*$/${1}http/;' zm.conf
+
 %install
 rm -rf $RPM_BUILD_ROOT
-install -d $RPM_BUILD_ROOT{%{_datadir}/%{name},%{_examplesdir}/%{name}-%{version},%{_sysconfdir}}
+install -d $RPM_BUILD_ROOT{%{_localstatedir}/run,/etc/logrotate.d,%{_datadir}/zoneminder/www}
 
 %{__make} install \
-	DESTDIR=$RPM_BUILD_ROOT
-install -d  $RPM_BUILD_ROOT/var/run/zm
-install -d $RPM_BUILD_ROOT/var/log/zm
-install -d $RPM_BUILD_ROOT/var/lib/zm
-install -d $RPM_BUILD_ROOT/var/lib/zm/{events,images,sounds,temp}
-install -d $RPM_BUILD_ROOT%{_prefix}/lib/zm/init
-install -d $RPM_BUILD_ROOT%{_prefix}/lib/zm/bin
-install -d $RPM_BUILD_ROOT%{_prefix}/lib/zm/html
-install -d $RPM_BUILD_ROOT/etc/logrotate.d/
+	DESTDIR=$RPM_BUILD_ROOT \
+	INSTALLDIRS=vendor
 
-install zmconfig.txt $RPM_BUILD_ROOT%{_prefix}/lib/zm/init/zmconfig.txt
-cat %{SOURCE2} | sed -e 's/^ZM_VERSION=.*$/ZM_VERSION=%{version}/' >zminit
-install zminit $RPM_BUILD_ROOT%{_prefix}/lib/zm/bin/zminit
-cp zmconfig.pl zmoptions
-#cat %{PATCH3} | patch -p1 -b --suffix .zmopt -s
-install %{SOURCE7} $RPM_BUILD_ROOT/etc/logrotate.d/zm
-install zmoptions $RPM_BUILD_ROOT%{_prefix}/lib/zm/init/zmoptions
-install zmconfig_eml.txt $RPM_BUILD_ROOT%{_prefix}/lib/zm/init/zmconfig_eml.txt
-install zmconfig_msg.txt $RPM_BUILD_ROOT%{_prefix}/lib/zm/init/zmconfig_msg.txt
-install -d $RPM_BUILD_ROOT%{_prefix}/lib/zm/upgrade
+rm -rf $RPM_BUILD_ROOT%{_prefix}/%{_lib}/perl5/vendor_perl/*.*/*-*
+rm -rf $RPM_BUILD_ROOT%{_prefix}/%{_lib}/perl5/*.*/*-*
+rm -f $RPM_BUILD_ROOT%{_bindir}/zmx10.pl
 
-#mv $RPM_BUILD_ROOT%{_datadir}/doc doc
-
-install db/zmalter-1.*.sql $RPM_BUILD_ROOT%{_prefix}/lib/zm/upgrade
-cat %{SOURCE3} | sed -e 's/^ZM_VERSION=.*$/ZM_VERSION=%{version}/' >zmdbupgrade
-install zmdbupgrade $RPM_BUILD_ROOT%{_prefix}/lib/zm/upgrade/zmdbupgrade
-
-for d in events images sounds temp; do
-	install -m 755 -d $RPM_BUILD_ROOT/var/lib/zm/$d
-	rm -rf $RPM_BUILD_ROOT%{_prefix}/lib/zm/html/$d
-	ln -sf /var/lib/zm/$d $RPM_BUILD_ROOT%{_datadir}/zm/$d
+install -m 755 -d $RPM_BUILD_ROOT%{_localstatedir}/log/zoneminder
+for dir in events images temp
+do
+        install -m 755 -d $RPM_BUILD_ROOT%{_localstatedir}/%{_lib}/zoneminder/$dir
+        rm -rf $RPM_BUILD_ROOT%{_datadir}/zoneminder/www/$dir
+        ln -sf ../../../..%{_localstatedir}/%{_lib}/zoneminder/$dir $RPM_BUILD_ROOT%{_datadir}/zoneminder/www/$dir
 done
-
-install -d $RPM_BUILD_ROOT/etc/rc.d/init.d
-install scripts/zm $RPM_BUILD_ROOT/etc/rc.d/init.d
-install -d $RPM_BUILD_ROOT%{_sysconfdir}/httpd/conf.d
-install %{SOURCE4} $RPM_BUILD_ROOT%{_sysconfdir}/httpd/conf.d/zm.conf
-
-gunzip -c %{SOURCE5} | tar xf - cambozola-*/dist/cambozola.jar
-install cambozola-*/dist/cambozola.jar $RPM_BUILD_ROOT%{_datadir}/zm/cambozola.jar
-#rm -rf cambozola-*
-
-install %{SOURCE6} $RPM_BUILD_ROOT%{_prefix}/lib/zm/upgrade/zmalter-os
-
-install db/zmschema.sql	$RPM_BUILD_ROOT%{_prefix}/lib/zm/init
+install -D -m 755 scripts/zm $RPM_BUILD_ROOT%{_initrddir}/zoneminder
+install -D -m 644 cambozola-*/dist/cambozola.jar $RPM_BUILD_ROOT%{_datadir}/zoneminder/www/cambozola.jar
+install -D -m 644 %{SOURCE3} $RPM_BUILD_ROOT%{_sysconfdir}/httpd/conf.d/zoneminder.conf
+install %{SOURCE6} $RPM_BUILD_ROOT%{_sysconfdir}/logrotate.d/%{name}
 
 %clean
 rm -rf $RPM_BUILD_ROOT
@@ -209,10 +201,10 @@ fi
 %defattr(644,root,root,755)
 %doc AUTHORS README
 %config(noreplace) %attr(640,root,http) %{_sysconfdir}/zm.conf
-%config(noreplace) %{_sysconfdir}/httpd/conf.d/zm.conf
+%config(noreplace) %{_sysconfdir}/httpd/conf.d/zoneminder.conf
 %config(noreplace) /etc/logrotate.d/zm
-%config(noreplace) %attr(640,root,http) %{_datadir}/zm/zm_config.php
-%attr(754,root,root) /etc/rc.d/init.d/zm
+#%config(noreplace) %attr(640,root,http) %{_datadir}/zoneminder/zm_config.php
+%attr(754,root,root) /etc/rc.d/init.d/zoneminder
 %attr(4755,root,root) %{_bindir}/zmfix
 %attr(755,root,root) %{_bindir}/zma
 %attr(755,root,root) %{_bindir}/zmaudit.pl
@@ -227,63 +219,75 @@ fi
 %attr(755,root,root) %{_bindir}/zmupdate.pl
 %attr(755,root,root) %{_bindir}/zmvideo.pl
 %attr(755,root,root) %{_bindir}/zmwatch.pl
-%dir %attr(750,root,http)%{_prefix}/lib/zm
-%dir %{_prefix}/lib/zm/bin
-%dir %attr(750,root,http) %{_prefix}/lib/zm/html
-%dir %attr(750,root,http) %{_datadir}/zm/events
-%dir %attr(750,root,http) %{_datadir}/zm/images
-%dir %attr(750,root,http) %{_datadir}/zm/sounds
-%dir %attr(750,root,http) %{_datadir}/zm/temp
-%dir %attr(750,root,http) /var/lib/zm/
-%dir %attr(750,root,http) /var/lib/zm/events
-%dir %attr(750,root,http) /var/lib/zm/images
-%dir %attr(750,root,http) /var/lib/zm/sounds
-%dir %attr(750,root,http) /var/lib/zm/temp
-%dir %{_prefix}/lib/zm/init
-%dir %{_prefix}/lib/zm/upgrade
-%attr(4750,root,root) %{_prefix}/lib/zm/bin/*
-%{_prefix}/lib/zm/init/*
-%{_prefix}/lib/zm/upgrade/zm*
-%dir %attr(750,root,http) %{_datadir}/zm
-%dir %attr(750,root,http) %{_datadir}/zm/cgi-bin
-%dir %attr(750,root,http) %{_datadir}/zm/graphics
-%attr(750,root,http) %{_datadir}/zm/cgi-bin/*
-%attr(640,root,http) %{_datadir}/zm/graphics/*
-%attr(640,root,http) %{_datadir}/zm/*.css
-%attr(640,root,http) %{_datadir}/zm/*.ico
-%attr(640,root,http) %{_datadir}/zm/*.php
-%exclude %{_datadir}/zm/zm_lang_*.php
-%exclude %{_datadir}/zm/zm_config.php
-#%attr(640,root,http) %{_datadir}/zm/cambozola.jar
-%dir %attr(770,root,http) /var/log/zm
-%dir %attr(770,root,http) /var/run/zm
-%lang(dk) %{_datadir}/zm/zm_lang_dk_dk.php
-%lang(de) %{_datadir}/zm/zm_lang_de_de.php
-%lang(gb) %{_datadir}/zm/zm_lang_en_gb.php
-%lang(en) %{_datadir}/zm/zm_lang_en_us.php
-%lang(fr) %{_datadir}/zm/zm_lang_fr_fr.php
-%lang(jp) %{_datadir}/zm/zm_lang_ja_jp.php
-%lang(pl) %{_datadir}/zm/zm_lang_pl_pl.php
-%lang(ru) %{_datadir}/zm/zm_lang_ru_ru.php
-%lang(nl) %{_datadir}/zm/zm_lang_nl_nl.php
-%lang(it) %{_datadir}/zm/zm_lang_it_it.php
-%lang(it) %{_datadir}/zm/zm_lang_it_it2.php
-%lang(es) %{_datadir}/zm/zm_lang_es_ar.php
-%lang(pt_br) %{_datadir}/zm/zm_lang_pt_br.php
+#%dir %attr(750,root,http)%{_prefix}/%{_lib}/zm
+#%dir %{_prefix}/%{_lib}/zoneminder/bin
+#%dir %attr(750,root,http) %{_prefix}/%{_lib}/zoneminder/html
+%dir %attr(750,root,http) %{_datadir}/zoneminder/events
+%dir %attr(750,root,http) %{_datadir}/zoneminder/images
+%dir %attr(750,root,http) %{_datadir}/zoneminder/sounds
+%dir %attr(750,root,http) %{_datadir}/zoneminder/temp
+%dir %attr(750,root,http) /var/%{_lib}/zoneminder/
+%dir %attr(750,root,http) /var/%{_lib}/zoneminder/events
+%dir %attr(750,root,http) /var/%{_lib}/zoneminder/images
+#%dir %attr(750,root,http) /var/%{_lib}/zoneminder/sounds
+%dir %attr(750,root,http) /var/%{_lib}/zoneminder/temp
+#%dir %{_prefix}/%{_lib}/zoneminder/init
+#%dir %{_prefix}/%{_lib}/zoneminder/upgrade
+#%attr(4750,root,root) %{_prefix}/%{_lib}/zoneminder/bin/*
+#%{_prefix}/%{_lib}/zoneminder/init/*
+#%{_prefix}/%{_lib}/zoneminder/upgrade/zm*
+%dir %attr(750,root,http) %{_datadir}/zoneminder
+%dir %attr(750,root,http) %{_datadir}/zoneminder/cgi-bin
+%dir %attr(750,root,http) %{_datadir}/zoneminder/graphics
+%attr(750,root,http) %{_datadir}/zoneminder/cgi-bin/*
+%attr(640,root,http) %{_datadir}/zoneminder/graphics/*
+%attr(640,root,http) %{_datadir}/zoneminder/*.css
+%attr(640,root,http) %{_datadir}/zoneminder/*.ico
+%attr(640,root,http) %{_datadir}/zoneminder/*.php
+%exclude %{_datadir}/zoneminder/zm_lang_*.php
+%exclude %{_datadir}/zoneminder/zm_config.php
+#%attr(640,root,http) %{_datadir}/zoneminder/cambozola.jar
+#%dir %attr(770,root,http) /var/log/zm
+#%dir %attr(770,root,http) /var/run/zm
+%lang(dk) %{_datadir}/zoneminder/zm_lang_dk_dk.php
+%lang(de) %{_datadir}/zoneminder/zm_lang_de_de.php
+%lang(gb) %{_datadir}/zoneminder/zm_lang_en_gb.php
+%lang(en) %{_datadir}/zoneminder/zm_lang_en_us.php
+%lang(fr) %{_datadir}/zoneminder/zm_lang_fr_fr.php
+%lang(jp) %{_datadir}/zoneminder/zm_lang_ja_jp.php
+%lang(pl) %{_datadir}/zoneminder/zm_lang_pl_pl.php
+%lang(ru) %{_datadir}/zoneminder/zm_lang_ru_ru.php
+%lang(nl) %{_datadir}/zoneminder/zm_lang_nl_nl.php
+%lang(it) %{_datadir}/zoneminder/zm_lang_it_it.php
+%lang(es) %{_datadir}/zoneminder/zm_lang_es_ar.php
+%lang(pt_br) %{_datadir}/zoneminder/zm_lang_pt_br.php
+
+%dir %{_datadir}/zoneminder/www
+%dir %{_datadir}/zoneminder/www/events
+%dir %{_datadir}/zoneminder/www/images
+%dir %{_datadir}/zoneminder/www/temp
+
+%{_datadir}/zoneminder/db
+
+%{perl_vendorlib}/ZoneMinder
+%{perl_vendorlib}/*.pm
+%{_mandir}/man3/ZoneMinder*3pm*
 
 %files X10
 %defattr(644,root,root,755)
-%attr(755,root,root) %{_bindir}/zmx10.pl
+#%attr(755,root,root) %{_bindir}/zmx10.pl
 %attr(755,root,root) %{_bindir}/zmcontrol-axis-v2.pl
 %attr(755,root,root) %{_bindir}/zmcontrol-pelco-p.pl
 
 %files control
 %defattr(644,root,root,755)
-#%{_prefix}/lib/zm/init/zmcontrol.sql
-%attr(755,root,root) %{_bindir}/zmcontrol-kx-hcm10.pl
+#%{_prefix}/%{_lib}/zoneminder/init/zmcontrol.sql
+#%attr(755,root,root) %{_bindir}/zmcontrol-kx-hcm10.pl
 %attr(755,root,root) %{_bindir}/zmcontrol-pelco-d.pl
 %attr(755,root,root) %{_bindir}/zmcontrol-visca.pl
+%attr(755,root,root) %{_bindir}/zmcontrol-ncs370.pl
+%attr(755,root,root) %{_bindir}/zmcontrol-panasonic-ip.pl
 
 %files cambozola
 %defattr(644,root,root,755)
-%attr(640,root,http) %{_datadir}/zm/cambozola.jar
+%attr(640,root,http) %{_datadir}/zoneminder/www/cambozola.jar
