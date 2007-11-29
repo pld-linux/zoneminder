@@ -5,7 +5,7 @@
 #
 Summary:	Zone Minder is a software motion detector with nice WWW GUI
 Summary(pl.UTF-8):	Zone Minder - programowy wykrywacz ruchu z miłym GUI przez WWW
-Name:		zm
+Name:		zoneminder
 Version:	1.22.3
 Release:	1
 License:	GPL v2
@@ -15,12 +15,12 @@ Source0:	http://www.zoneminder.com/downloads/ZoneMinder-%{version}.tar.gz
 # http://www.charliemouse.com/code/cambozola/
 Source1:	http://www.charliemouse.com/code/cambozola/cambozola-0.68.tar.gz
 # Source1-md5:	e4fac8b6ee94c9075b14bb95be4f860b
-Source2:	%{name}-init
-Source3:	%{name}.conf
-Source4:	%{name}-logrotate_d
-Patch0:		%{name}-fedora.patch
-Patch1:		%{name}-c++.patch
-Patch2:		%{name}-shell.patch
+Source2:	zm-init
+Source3:	zm.conf
+Source4:	zm-logrotate_d
+Patch0:		zm-fedora.patch
+Patch1:		zm-c++.patch
+Patch2:		zm-shell.patch
 URL:		http://www.zoneminder.com/
 BuildRequires:	autoconf
 BuildRequires:	automake
