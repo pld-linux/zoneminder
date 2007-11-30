@@ -18,6 +18,8 @@ Source1:	http://www.charliemouse.com/code/cambozola/cambozola-0.68.tar.gz
 Source2:	zm-init
 Source3:	zm.conf
 Source4:	zm-logrotate_d
+Source5:	http://dig.hopto.org/xlib_shm/xlib_shm-0.6.3.tar.bz2
+# Source5-md5:	469a65bdf658e68e23445f5cc6f07f07
 Patch0:		zm-fedora.patch
 Patch1:		zm-c++.patch
 Patch2:		zm-shell.patch
@@ -102,7 +104,7 @@ parametrów używanych do sterowania kamerą na protokół konkretnej
 kamery.
 
 %prep
-%setup -q -n ZoneMinder-%{version}
+%setup -q -n ZoneMinder-%{version} -a5
 %patch0 -p1
 %patch1 -p1
 %patch2 -p1
@@ -142,6 +144,8 @@ gunzip -c %{SOURCE1} | tar xf - --wildcards cambozola-*/dist/cambozola.jar
 		-e 's/(ZM_WEB_USER=).*$/${1}http/;' \
 		-e 's/(ZM_WEB_GROUP=).*$/${1}http/;' zm.conf
 
+%{__cc} %{rpmcflags} %{rpmldflags} xlib_shm-*/xlib_shm.c -lXv -lXext -lX11 -lmysqlclient -o zm_xlib_shm
+
 %install
 rm -rf $RPM_BUILD_ROOT
 install -d $RPM_BUILD_ROOT{%{_localstatedir}/{run,log/zoneminder},/etc/logrotate.d}
@@ -165,6 +169,8 @@ install -D -m 755 scripts/zm $RPM_BUILD_ROOT%{_initrddir}/zoneminder
 install -D -m 644 cambozola-*/dist/cambozola.jar $RPM_BUILD_ROOT%{_datadir}/zoneminder/www/cambozola.jar
 install -D -m 644 %{SOURCE3} $RPM_BUILD_ROOT%{_sysconfdir}/httpd/conf.d/zoneminder.conf
 install %{SOURCE4} $RPM_BUILD_ROOT%{_sysconfdir}/logrotate.d/%{name}
+
+install zm_xlib_shm $RPM_BUILD_ROOT%{_bindir}
 
 %clean
 rm -rf $RPM_BUILD_ROOT
@@ -199,6 +205,7 @@ fi
 %attr(755,root,root) %{_bindir}/zmupdate.pl
 %attr(755,root,root) %{_bindir}/zmvideo.pl
 %attr(755,root,root) %{_bindir}/zmwatch.pl
+%attr(755,root,root) %{_bindir}/zm_xlib_shm
 %dir %{_datadir}/zoneminder
 %dir %{_datadir}/zoneminder/cgi-bin
 %attr(755,root,root) %{_datadir}/zoneminder/cgi-bin/*
