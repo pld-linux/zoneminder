@@ -7,7 +7,7 @@ Summary:	Zone Minder is a software motion detector with nice WWW GUI
 Summary(pl.UTF-8):	Zone Minder - programowy wykrywacz ruchu z miłym GUI przez WWW
 Name:		zoneminder
 Version:	1.22.3
-Release:	1
+Release:	1.1
 License:	GPL v2
 Group:		Applications/Graphics
 Source0:	http://www.zoneminder.com/downloads/ZoneMinder-%{version}.tar.gz
@@ -46,9 +46,8 @@ Requires:	php(mysql)
 Requires:	php(pcre)
 Requires:	rc-scripts
 Requires:	webserver(php)
-Requires(hint):	perl-Device-SerialPort
 Requires(hint):	perl-MIME-Lite
-#Requires(hint):	perl-X10-ActiveHome
+Obsoletes:	zm
 BuildRoot:	%{tmpdir}/%{name}-%{version}-root-%(id -u -n)
 
 %description
@@ -73,6 +72,7 @@ Summary(pl.UTF-8):	Sterowanie monitorowaniem interfejsu X10
 Group:		Libraries
 Requires:	%{name} = %{version}-%{release}
 Requires:	perl-X10
+Obsoletes:	zm-X10
 
 %description X10
 This script controls the monitoring of the X10 interface and the
@@ -90,6 +90,7 @@ Group:		Libraries
 Requires:	%{name} = %{version}-%{release}
 Requires:	perl-Device-SerialPort
 Requires:	perl-Time-HiRes
+Obsoletes:	zm-control
 
 %description control
 This are a set of example scripts which can be used to control
