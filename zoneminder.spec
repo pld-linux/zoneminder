@@ -44,6 +44,9 @@ Requires:	php(mysql)
 Requires:	php(pcre)
 Requires:	rc-scripts
 Requires:	webserver(php)
+Requires(hint):	perl-Device-SerialPort
+Requires(hint):	perl-MIME-Lite
+#Requires(hint):	perl-X10-ActiveHome
 BuildRoot:	%{tmpdir}/%{name}-%{version}-root-%(id -u -n)
 
 %description
