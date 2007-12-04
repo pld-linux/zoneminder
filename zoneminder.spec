@@ -23,6 +23,7 @@ Source5:	http://dig.hopto.org/xlib_shm/xlib_shm-0.6.3.tar.bz2
 Patch0:		zm-fedora.patch
 Patch1:		zm-c++.patch
 Patch2:		zm-shell.patch
+Patch3:		%{name}-xlib_shm.patch
 URL:		http://www.zoneminder.com/
 BuildRequires:	autoconf
 BuildRequires:	automake
@@ -109,6 +110,9 @@ kamery.
 %patch0 -p1
 %patch1 -p1
 %patch2 -p1
+cd xlib_shm-*
+%patch3 -p1
+cd ..
 
 sed -i -e 's#chown#true#g' -e 's#chmod#true#g' *.am */*.am */*/*.am
 
