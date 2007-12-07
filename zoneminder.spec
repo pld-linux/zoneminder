@@ -24,6 +24,7 @@ Patch0:		zm-fedora.patch
 Patch1:		zm-c++.patch
 Patch2:		zm-shell.patch
 Patch3:		%{name}-xlib_shm.patch
+Patch4:		%{name}-konqueror.patch
 URL:		http://www.zoneminder.com/
 BuildRequires:	autoconf
 BuildRequires:	automake
@@ -113,6 +114,7 @@ kamery.
 cd xlib_shm-*
 %patch3 -p1
 cd ..
+%patch4 -p1
 
 sed -i -e 's#chown#true#g' -e 's#chmod#true#g' *.am */*.am */*/*.am
 
