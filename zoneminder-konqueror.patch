@@ -1,7 +1,23 @@
 diff -urN ZoneMinder-1.22.3.org/web/zm_funcs.php ZoneMinder-1.22.3/web/zm_funcs.php
 --- ZoneMinder-1.22.3.org/web/zm_funcs.php	2006-11-09 11:51:10.000000000 +0100
-+++ ZoneMinder-1.22.3/web/zm_funcs.php	2007-12-07 21:13:56.142334769 +0100
-@@ -659,6 +659,11 @@
++++ ZoneMinder-1.22.3/web/zm_funcs.php	2007-12-07 22:11:55.516973882 +0100
+@@ -296,9 +296,15 @@
+ 
+ function outputImageStream( $src, $width, $height, $name="" )
+ {
++	if (canStreamIframe()) {
++?>
++<iframe src="<?= $src ?>" alt="<?= $name ?>" border="0" width="<?= $width ?>" height="<?= $height ?>">
++<?php
++	} else {
+ ?>
+ <img src="<?= $src ?>" alt="<?= $name ?>" border="0" width="<?= $width ?>" height="<?= $height ?>">
+ <?php
++	}
+ }
+ 
+ function outputControlStream( $src, $width, $height, $monitor, $scale, $target )
+@@ -659,6 +665,11 @@
  		$version = $log_version[1];
  		$browser = 'safari';
  	}
@@ -13,3 +29,33 @@ diff -urN ZoneMinder-1.22.3.org/web/zm_funcs.php ZoneMinder-1.22.3/web/zm_funcs.
  	elseif (ereg( 'Opera ([0-9].[0-9]{1,2})',$_SERVER['HTTP_USER_AGENT'],$log_version))
  	{
  		$version = $log_version[1];
+@@ -683,6 +694,13 @@
+ 	return( $browser == "mozilla" );
+ }
+ 
++function isKonqueror()
++{
++	getBrowser( $browser, $version );
++
++	return( $browser == "konqueror" );
++}
++
+ function isInternetExplorer()
+ {
+ 	getBrowser( $browser, $version );
+@@ -700,9 +718,14 @@
+ 	return ( preg_match( '/Win/', $_SERVER['HTTP_USER_AGENT'] ) );
+ }
+ 
++function canStreamIframe()
++{
++	return (isKonqueror());
++}
++
+ function canStreamNative()
+ {
+-	return( ZM_CAN_STREAM == "yes" || ( ZM_CAN_STREAM == "auto" && isNetscape() ) );
++	return( ZM_CAN_STREAM == "yes" || ( ZM_CAN_STREAM == "auto" && isNetscape() ) || ( ZM_CAN_STREAM == "auto" && isKonqueror() ) );
+ }
+ 
+ function canStreamApplet()
