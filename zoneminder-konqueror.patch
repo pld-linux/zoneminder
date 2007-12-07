@@ -1,0 +1,15 @@
+diff -urN ZoneMinder-1.22.3.org/web/zm_funcs.php ZoneMinder-1.22.3/web/zm_funcs.php
+--- ZoneMinder-1.22.3.org/web/zm_funcs.php	2006-11-09 11:51:10.000000000 +0100
++++ ZoneMinder-1.22.3/web/zm_funcs.php	2007-12-07 21:13:56.142334769 +0100
+@@ -659,6 +659,11 @@
+ 		$version = $log_version[1];
+ 		$browser = 'safari';
+ 	}
++        elseif (ereg( 'Konqueror/([0-9.]+)',$_SERVER['HTTP_USER_AGENT'],$log_version))
++        {
++                $version = $log_version[1];
++                $browser = 'konqueror';
++        }
+ 	elseif (ereg( 'Opera ([0-9].[0-9]{1,2})',$_SERVER['HTTP_USER_AGENT'],$log_version))
+ 	{
+ 		$version = $log_version[1];
