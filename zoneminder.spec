@@ -11,11 +11,10 @@ License:	GPL v2
 Group:		Applications/Graphics
 Source0:	http://www.zoneminder.com/downloads/ZoneMinder-%{version}.tar.gz
 # Source0-md5:	4677739d31807339d621e6e04bc62790
-# Source1-md5:	e4fac8b6ee94c9075b14bb95be4f860b
-Source2:	zm-init
-Source3:	zm.conf
-Source4:	zm-logrotate_d
-Source5:	http://dig.hopto.org/xlib_shm/xlib_shm-0.6.3.tar.bz2
+Source1:	zm-init
+Source2:	zm.conf
+Source3:	zm-logrotate_d
+Source4:	http://dig.hopto.org/xlib_shm/xlib_shm-0.6.3.tar.bz2
 # Source5-md5:	469a65bdf658e68e23445f5cc6f07f07
 Patch0:		zm-fedora.patch
 Patch1:		zm-c++.patch
@@ -105,7 +104,7 @@ parametrów używanych do sterowania kamerą na protokół konkretnej
 kamery.
 
 %prep
-%setup -q -n ZoneMinder-%{version} -a5
+%setup -q -n ZoneMinder-%{version} -a4
 %patch0 -p1
 %patch1 -p1
 %patch2 -p1
@@ -169,8 +168,8 @@ do
         ln -sf ../../../..%{_localstatedir}/lib/zoneminder/$dir $RPM_BUILD_ROOT%{_datadir}/zoneminder/www/$dir
 done
 install -D -m 755 scripts/zm $RPM_BUILD_ROOT%{_initrddir}/zoneminder
-install -D -m 644 %{SOURCE3} $RPM_BUILD_ROOT%{_sysconfdir}/httpd/conf.d/zoneminder.conf
-install %{SOURCE4} $RPM_BUILD_ROOT%{_sysconfdir}/logrotate.d/%{name}
+install -D -m 644 %{SOURCE2} $RPM_BUILD_ROOT%{_sysconfdir}/httpd/conf.d/zoneminder.conf
+install %{SOURCE3} $RPM_BUILD_ROOT%{_sysconfdir}/logrotate.d/%{name}
 
 install zm_xlib_shm $RPM_BUILD_ROOT%{_bindir}
 
