@@ -15,7 +15,7 @@ Source1:	zm-init
 Source2:	zm.conf
 Source3:	zm-logrotate_d
 Source4:	http://dig.hopto.org/xlib_shm/xlib_shm-0.6.3.tar.bz2
-# Source5-md5:	469a65bdf658e68e23445f5cc6f07f07
+# Source4-md5:	469a65bdf658e68e23445f5cc6f07f07
 Patch0:		zm-fedora.patch
 Patch1:		zm-c++.patch
 Patch2:		zm-shell.patch
