@@ -1,5 +1,4 @@
 # TODO:
-# - move cambozola to separate spec ?
 # - no globs for suid/sgid files
 # - webapps
 #
@@ -12,8 +11,6 @@ License:	GPL v2
 Group:		Applications/Graphics
 Source0:	http://www.zoneminder.com/downloads/ZoneMinder-%{version}.tar.gz
 # Source0-md5:	4677739d31807339d621e6e04bc62790
-# http://www.charliemouse.com/code/cambozola/
-Source1:	http://www.charliemouse.com/code/cambozola/cambozola-0.68.tar.gz
 # Source1-md5:	e4fac8b6ee94c9075b14bb95be4f860b
 Source2:	zm-init
 Source3:	zm.conf
@@ -40,6 +37,7 @@ BuildRequires:	perl-DBI
 BuildRequires:	perl-Date-Manip
 BuildRequires:	perl-libwww
 BuildRequires:	rpmbuild(macros) >= 1.268
+BuildRequires:	xorg-lib-libXv-devel
 Requires(post,preun):	/sbin/chkconfig
 Requires:	perl-DBD-mysql
 Requires:	perl-Date-Manip
@@ -145,8 +143,6 @@ EOF
 
 %{__make}
 
-gunzip -c %{SOURCE1} | tar xf - --wildcards cambozola-*/dist/cambozola.jar
-
 %{__perl} -pi \
 		-e 's/(ZM_WEB_USER=).*$/${1}http/;' \
 		-e 's/(ZM_WEB_GROUP=).*$/${1}http/;' zm.conf
@@ -173,7 +169,6 @@ do
         ln -sf ../../../..%{_localstatedir}/lib/zoneminder/$dir $RPM_BUILD_ROOT%{_datadir}/zoneminder/www/$dir
 done
 install -D -m 755 scripts/zm $RPM_BUILD_ROOT%{_initrddir}/zoneminder
-install -D -m 644 cambozola-*/dist/cambozola.jar $RPM_BUILD_ROOT%{_datadir}/zoneminder/www/cambozola.jar
 install -D -m 644 %{SOURCE3} $RPM_BUILD_ROOT%{_sysconfdir}/httpd/conf.d/zoneminder.conf
 install %{SOURCE4} $RPM_BUILD_ROOT%{_sysconfdir}/logrotate.d/%{name}
 
