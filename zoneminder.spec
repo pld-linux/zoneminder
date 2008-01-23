@@ -5,26 +5,25 @@
 Summary:	Zone Minder is a software motion detector with nice WWW GUI
 Summary(pl.UTF-8):	Zone Minder - programowy wykrywacz ruchu z miłym GUI przez WWW
 Name:		zoneminder
-Version:	1.22.3
-Release:	1.1
+Version:	1.23.1
+Release:	1
 License:	GPL v2
 Group:		Applications/Graphics
 Source0:	http://www.zoneminder.com/downloads/ZoneMinder-%{version}.tar.gz
-# Source0-md5:	4677739d31807339d621e6e04bc62790
+# Source0-md5:	2a70f4708a414be37187700823e87fb4
 Source1:	zm-init
 Source2:	zm.conf
 Source3:	zm-logrotate_d
 Source4:	http://dig.hopto.org/xlib_shm/xlib_shm-0.6.3.tar.bz2
 # Source4-md5:	469a65bdf658e68e23445f5cc6f07f07
 Patch0:		zm-fedora.patch
-Patch1:		zm-c++.patch
-Patch2:		zm-shell.patch
-Patch3:		%{name}-xlib_shm.patch
-Patch4:		%{name}-konqueror.patch
+Patch1:		%{name}-ffmpeg.patch
+Patch2:		%{name}-xlib_shm.patch
 URL:		http://www.zoneminder.com/
 BuildRequires:	autoconf
 BuildRequires:	automake
 BuildRequires:	ffmpeg-devel >= 0.4.8
+BuildRequires:	gnutls-devel
 BuildRequires:	lame-libs-devel
 BuildRequires:	libjpeg-devel
 BuildRequires:	libstdc++-devel
@@ -35,6 +34,7 @@ BuildRequires:	perl-DBD-mysql
 BuildRequires:	perl-DBI
 BuildRequires:	perl-Date-Manip
 BuildRequires:	perl-libwww
+BuildRequires:	perl-PHP-Serialization
 BuildRequires:	rpmbuild(macros) >= 1.268
 BuildRequires:	xorg-lib-libXv-devel
 Requires(post,preun):	/sbin/chkconfig
@@ -47,6 +47,10 @@ Requires:	rc-scripts
 Requires:	webserver(php)
 Requires(hint):	perl-MIME-Lite
 Obsoletes:	zm
+Obsoletes:	zm-X10
+Obsoletes:	zoneminder-X10
+Obsoletes:	zm-control
+Obsoletes:	zoneminder-control
 BuildRoot:	%{tmpdir}/%{name}-%{version}-root-%(id -u -n)
 
 %description
@@ -65,53 +69,13 @@ zaprojektowany do działania z jądrami obsługującymi interfejs Video
 For Linux (V4L) i był testowany z kamerami podłączonymi do kart BTTV,
 różnymi kamerami USB i sieciowymi kamerami IP.
 
-%package X10
-Summary:	Controls the monitoring of the X10 interface
-Summary(pl.UTF-8):	Sterowanie monitorowaniem interfejsu X10
-Group:		Libraries
-Requires:	%{name} = %{version}-%{release}
-Requires:	perl-X10
-Obsoletes:	zm-X10
-
-%description X10
-This script controls the monitoring of the X10 interface and the
-consequent management of the ZM daemons based on the receipt of X10
-signals.
-
-%description X10 -l pl.UTF-8
-Te skrypty sterują monitorowaniem interfejsu X10 i zarządzają demonami
-ZM na podstawie idei sygnałów X10.
-
-%package control
-Summary:	Some scripts for control Pan/Tilt/Zoom class cameras
-Summary(pl.UTF-8):	Skrypty do sterowania kamerami klasy Pan/Tilt/Zoom
-Group:		Libraries
-Requires:	%{name} = %{version}-%{release}
-Requires:	perl-Device-SerialPort
-Requires:	perl-Time-HiRes
-Obsoletes:	zm-control
-
-%description control
-This are a set of example scripts which can be used to control
-Pan/Tilt/Zoom class cameras. Each script converts a set of standard
-parameters used for camera control into the actual protocol commands
-sent to the camera.
-
-%description control -l pl.UTF-8
-To jest zestaw przykładowych skryptów do sterowania kamerami klasy
-"Pan/Tilt/Zoom". Każdy skrypt konwertuje zestaw standardowych
-parametrów używanych do sterowania kamerą na protokół konkretnej
-kamery.
-
 %prep
 %setup -q -n ZoneMinder-%{version} -a4
 %patch0 -p1
-%patch1 -p1
-%patch2 -p1
+%patch1 -p0
 cd xlib_shm-*
-%patch3 -p1
+%patch2 -p1
 cd ..
-%patch4 -p1
 
 sed -i -e 's#chown#true#g' -e 's#chmod#true#g' *.am */*.am */*/*.am
 
@@ -187,7 +151,7 @@ fi
 
 %files
 %defattr(644,root,root,755)
-%doc AUTHORS README README.txt
+%doc AUTHORS README
 %config(noreplace) %attr(640,root,http) %{_sysconfdir}/zm.conf
 %config(noreplace) %{_sysconfdir}/httpd/conf.d/zoneminder.conf
 %config(noreplace) /etc/logrotate.d/%{name}
@@ -195,6 +159,7 @@ fi
 %attr(4755,root,root) %{_bindir}/zmfix
 %attr(755,root,root) %{_bindir}/zma
 %attr(755,root,root) %{_bindir}/zmaudit.pl
+%attr(755,root,root) %{_bindir}/zmcontrol.pl
 %attr(755,root,root) %{_bindir}/zmc
 %attr(755,root,root) %{_bindir}/zmdc.pl
 %attr(755,root,root) %{_bindir}/zmf
@@ -229,15 +194,3 @@ fi
 %{perl_vendorlib}/ZoneMinder
 %{perl_vendorlib}/*.pm
 %{_mandir}/man3/ZoneMinder*3pm*
-
-%files X10
-%defattr(644,root,root,755)
-%attr(755,root,root) %{_bindir}/zmcontrol-axis-v2.pl
-%attr(755,root,root) %{_bindir}/zmcontrol-pelco-p.pl
-
-%files control
-%defattr(644,root,root,755)
-%attr(755,root,root) %{_bindir}/zmcontrol-pelco-d.pl
-%attr(755,root,root) %{_bindir}/zmcontrol-visca.pl
-%attr(755,root,root) %{_bindir}/zmcontrol-ncs370.pl
-%attr(755,root,root) %{_bindir}/zmcontrol-panasonic-ip.pl
