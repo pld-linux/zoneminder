@@ -1,6 +1,7 @@
-/var/log/zm/*log {
-    weekly
-    notifempty
-    missingok
+/var/log/zm/*log
+{
+	weekly
+	notifempty
+	missingok
 	create 660 http http
 }
