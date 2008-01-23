@@ -1,0 +1,11 @@
+--- src/zm_mpeg.cpp~	2007-12-17 14:17:23.000000000 +0100
++++ src/zm_mpeg.cpp	2008-01-23 10:12:08.367096661 +0100
+@@ -278,7 +278,7 @@
+ 	{
+ 		/* close the output file */
+ #if ZM_FFMPEG_SVN
+-		url_fclose(ofc->pb);
++		url_fclose(&ofc->pb);
+ #else
+ 		url_fclose(&ofc->pb);
+ #endif
