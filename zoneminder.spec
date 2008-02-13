@@ -16,6 +16,8 @@ Source2:	zm.conf
 Source3:	zm-logrotate_d
 Source4:	http://dig.hopto.org/xlib_shm/xlib_shm-0.6.3.tar.bz2
 # Source4-md5:	469a65bdf658e68e23445f5cc6f07f07
+# http://mootools.net/download
+Source5:	mootools.js
 Patch0:		zm-fedora.patch
 Patch1:		%{name}-ffmpeg.patch
 Patch2:		%{name}-xlib_shm.patch
@@ -134,6 +136,7 @@ done
 install -D -m 755 scripts/zm $RPM_BUILD_ROOT%{_initrddir}/zoneminder
 install -D -m 644 %{SOURCE2} $RPM_BUILD_ROOT%{_sysconfdir}/httpd/conf.d/zoneminder.conf
 install %{SOURCE3} $RPM_BUILD_ROOT%{_sysconfdir}/logrotate.d/%{name}
+install %{SOURCE5} $RPM_BUILD_ROOT%{_datadir}/zoneminder/www
 
 install zm_xlib_shm $RPM_BUILD_ROOT%{_bindir}
 
