@@ -19,8 +19,7 @@ Source4:	http://dig.hopto.org/xlib_shm/xlib_shm-0.6.3.tar.bz2
 # http://mootools.net/download
 Source5:	mootools.js
 Patch0:		zm-fedora.patch
-Patch1:		%{name}-ffmpeg.patch
-Patch2:		%{name}-xlib_shm.patch
+Patch1:		%{name}-xlib_shm.patch
 URL:		http://www.zoneminder.com/
 BuildRequires:	autoconf
 BuildRequires:	automake
@@ -74,9 +73,8 @@ różnymi kamerami USB i sieciowymi kamerami IP.
 %prep
 %setup -q -n ZoneMinder-%{version} -a4
 %patch0 -p1
-%patch1 -p0
 cd xlib_shm-*
-%patch2 -p1
+%patch1 -p1
 cd ..
 
 sed -i -e 's#chown#true#g' -e 's#chmod#true#g' *.am */*.am */*/*.am
