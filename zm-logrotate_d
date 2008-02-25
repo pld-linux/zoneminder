@@ -1,4 +1,4 @@
-/var/log/zm/*log
+/var/log/zoneminder/*log
 {
 	weekly
 	notifempty
