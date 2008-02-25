@@ -107,7 +107,7 @@ EOF
 	--with-webgroup=http	\
 	--with-webuser=http		 \
 	--with-webdir=%{_datadir}/zoneminder/www	\
-	--with-cgidir=%{_datadir}/zoneminder/cgi-bin
+	--with-cgidir=%{_libdir}/zoneminder/cgi-bin
 
 %{__make}
 
@@ -179,8 +179,6 @@ fi
 %attr(755,root,root) %{_bindir}/zmwatch.pl
 %attr(755,root,root) %{_bindir}/zm_xlib_shm
 %dir %{_datadir}/zoneminder
-%dir %{_datadir}/zoneminder/cgi-bin
-%attr(755,root,root) %{_datadir}/zoneminder/cgi-bin/*
 %{_datadir}/zoneminder/db
 %dir %{_datadir}/zoneminder/www
 %{_datadir}/zoneminder/www/*.*
@@ -190,6 +188,10 @@ fi
 %dir %{_datadir}/zoneminder/www/temp
 %{_datadir}/zoneminder/www/graphics
 %{_datadir}/zoneminder/www/sounds
+%dir %{_libdir}/zoneminder
+%dir %{_libdir}/zoneminder/cgi-bin
+%attr(755,root,root) %{_libdir}/zoneminder/cgi-bin/nph-zms
+%attr(755,root,root) %{_libdir}/zoneminder/cgi-bin/zms
 
 %dir %attr(770,root,http) /var/log/zoneminder
 %dir %attr(750,root,http) /var/lib/zoneminder
