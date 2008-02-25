@@ -3,6 +3,8 @@
 # - webapps
 # - it requires some magick to work with cambozola
 # - check default configuration in zm_create.sql (wrong paths: /tmp/, /usr/local/bin)
+# - fix Group(?)
+# - check BuildRequires: ffmpeg-devel (probably > 0.4.8)
 #
 Summary:	Zone Minder is a software motion detector with nice WWW GUI
 Summary(pl.UTF-8):	Zone Minder - programowy wykrywacz ruchu z miłym GUI przez WWW
