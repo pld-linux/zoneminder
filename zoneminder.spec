@@ -2,6 +2,7 @@
 # - no globs for suid/sgid files
 # - webapps
 # - it requires some magick to work with cambozola
+# - check default configuration in zm_create.sql (wrong paths: /tmp/, /usr/local/bin)
 #
 Summary:	Zone Minder is a software motion detector with nice WWW GUI
 Summary(pl.UTF-8):	Zone Minder - programowy wykrywacz ruchu z miłym GUI przez WWW
@@ -83,6 +84,8 @@ sed -i -e 's#chown#true#g' -e 's#chmod#true#g' *.am */*.am */*/*.am
 
 cat <<'EOF' >> db/zm_create.sql.in
 update Config set Value = '/cgi-bin/zoneminder/nph-zms' where Name = 'ZM_PATH_ZMS';
+update Config set Value = '/var/run/zoneminder' where Name = 'ZM_PATH_SOCKS';
+update Config set Value = '/var/log/zoneminder' where Name = 'ZM_PATH_LOGS';
 grant select,insert,update,delete on zm.* to 'zmuser'@localhost identified by 'zmpass';
 EOF
 
