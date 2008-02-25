@@ -83,10 +83,10 @@ cd ..
 sed -i -e 's#chown#true#g' -e 's#chmod#true#g' *.am */*.am */*/*.am
 
 cat <<'EOF' >> db/zm_create.sql.in
-update Config set Value = '/cgi-bin/zoneminder/nph-zms' where Name = 'ZM_PATH_ZMS';
-update Config set Value = '/var/run/zoneminder' where Name = 'ZM_PATH_SOCKS';
-update Config set Value = '/var/log/zoneminder' where Name = 'ZM_PATH_LOGS';
-grant select,insert,update,delete on zm.* to 'zmuser'@localhost identified by 'zmpass';
+UPDATE Config SET Value = '/cgi-bin/zoneminder/nph-zms' WHERE Name = 'ZM_PATH_ZMS';
+UPDATE Config SET Value = '/var/run/zoneminder' WHERE Name = 'ZM_PATH_SOCKS';
+UPDATE Config SET Value = '/var/log/zoneminder' WHERE Name = 'ZM_PATH_LOGS';
+GRANT SELECT,INSERT,UPDATE,DELETE ON zm.* TO 'zmuser'@localhost IDENTIFIED BY 'zmpass';
 EOF
 
 %build
