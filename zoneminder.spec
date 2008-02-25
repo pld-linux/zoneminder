@@ -1,6 +1,7 @@
 # TODO:
 # - no globs for suid/sgid files
 # - webapps
+# - it requires some magick to work with cambozola
 #
 Summary:	Zone Minder is a software motion detector with nice WWW GUI
 Summary(pl.UTF-8):	Zone Minder - programowy wykrywacz ruchu z miłym GUI przez WWW
@@ -47,6 +48,7 @@ Requires:	php(pcre)
 Requires:	rc-scripts
 Requires:	webserver(php)
 Requires(hint):	perl-MIME-Lite
+Suggests:	cambozola
 Obsoletes:	zm
 Obsoletes:	zm-X10
 Obsoletes:	zoneminder-X10
