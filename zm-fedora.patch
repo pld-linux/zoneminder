@@ -2,8 +2,8 @@ diff -urN ZoneMinder-1.22.3.org/configure.in ZoneMinder-1.22.3/configure.in
 --- ZoneMinder-1.22.3.org/configure.in	2006-10-23 16:06:21.000000000 +0200
 +++ ZoneMinder-1.22.3/configure.in	2007-11-29 18:08:52.809478549 +0100
 @@ -1,10 +1,8 @@
--AC_INIT(zm,1.23.2,support@zoneminder.com,ZoneMinder)
-+AC_INIT(zm,1.23.2,support@zoneminder.com,zoneminder)
+-AC_INIT(zm,1.23.3,support@zoneminder.com,ZoneMinder)
++AC_INIT(zm,1.23.3,support@zoneminder.com,zoneminder)
  AC_CONFIG_SRCDIR(src/zm.h)
  AM_INIT_AUTOMAKE
  AM_CONFIG_HEADER(config.h)
