@@ -1,0 +1,14 @@
+--- ZoneMinder-1.23.3/src/zm_mpeg.h.orig	2008-10-13 00:03:08.282338146 +0200
++++ ZoneMinder-1.23.3/src/zm_mpeg.h	2008-10-13 00:03:49.279520503 +0200
+@@ -26,9 +26,9 @@
+ 
+ extern "C" {
+ #define __STDC_CONSTANT_MACROS
+-#include <ffmpeg/avformat.h>
++#include <libavformat/avformat.h>
+ #if HAVE_LIBSWSCALE
+-#include <ffmpeg/swscale.h>
++#include <libswscale/swscale.h>
+ #endif // HAVE_LIBSWSCALE
+ }
+ 
