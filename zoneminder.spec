@@ -29,7 +29,7 @@ Patch2:		%{name}-ffmpeg.patch
 URL:		http://www.zoneminder.com/
 BuildRequires:	autoconf
 BuildRequires:	automake
-BuildRequires:	ffmpeg-devel >= 0.4.8
+BuildRequires:	ffmpeg-devel >= 0.4.9-4.20080822.1
 BuildRequires:	gnutls-devel
 BuildRequires:	lame-libs-devel
 BuildRequires:	libjpeg-devel
