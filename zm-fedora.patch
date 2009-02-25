@@ -1,11 +1,8 @@
-diff -urN ZoneMinder-1.22.3.org/configure.in ZoneMinder-1.22.3/configure.in
---- ZoneMinder-1.22.3.org/configure.in	2006-10-23 16:06:21.000000000 +0200
-+++ ZoneMinder-1.22.3/configure.in	2007-11-29 18:08:52.809478549 +0100
-@@ -1,10 +1,8 @@
--AC_INIT(zm,1.23.3,support@zoneminder.com,ZoneMinder)
-+AC_INIT(zm,1.23.3,support@zoneminder.com,zoneminder)
+diff -urN ZoneMinder-1.22.3.org/configure.ac ZoneMinder-1.22.3/configure.ac
+--- ZoneMinder-1.22.3.org/configure.ac	2006-10-23 16:06:21.000000000 +0200
++++ ZoneMinder-1.22.3/configure.ac	2007-11-29 18:08:52.809478549 +0100
+@@ -4,8 +4,6 @@
  AC_CONFIG_SRCDIR(src/zm.h)
- AM_INIT_AUTOMAKE
  AM_CONFIG_HEADER(config.h)
  
 -PATH_BUILD=`pwd`
@@ -152,15 +149,15 @@ diff -urN ZoneMinder-1.22.3.org/scripts/zm.in ZoneMinder-1.22.3/scripts/zm.in
 diff -urN ZoneMinder-1.22.3.org/scripts/zmupdate.pl ZoneMinder-1.22.3/scripts/zmupdate.pl
 --- ZoneMinder-1.22.3.org/scripts/zmupdate.pl	2006-11-24 15:39:38.000000000 +0100
 +++ ZoneMinder-1.22.3/scripts/zmupdate.pl	2007-11-29 18:08:52.809478549 +0100
-@@ -320,7 +320,7 @@
- 				$command .= " -p".$db_pass;
- 			}
- 		}
--		$command .= " ".ZM_DB_NAME." < ".ZM_PATH_BUILD."/db/zm_update-".$version.".sql";
-+		$command .= " ".ZM_DB_NAME." < ".ZM_PATH_DATA."/db/zm_update-".$version.".sql";
+@@ -402,7 +402,7 @@
+                 $command .= " -p".$db_pass;
+             }
+         }
+-        $command .= " ".ZM_DB_NAME." < ".ZM_PATH_BUILD."/db/zm_update-".$version.".sql";
++        $command .= " ".ZM_DB_NAME." < ".ZM_PATH_DATA."/db/zm_update-".$version.".sql";
  
- 		print( "Executing '$command'\n" ) if ( DBG_LEVEL > 0 );
- 		my $output = qx($command);
+         print( "Executing '$command'\n" ) if ( DBG_LEVEL > 0 );
+         my $output = qx($command);
 diff -urN ZoneMinder-1.22.3.org/zm.conf.in ZoneMinder-1.22.3/zm.conf.in
 --- ZoneMinder-1.22.3.org/zm.conf.in	2006-11-16 10:06:30.000000000 +0100
 +++ ZoneMinder-1.22.3/zm.conf.in	2007-11-29 18:08:52.809478549 +0100
