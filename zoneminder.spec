@@ -4,18 +4,16 @@
 # - it requires some magick to work with cambozola
 # - check default configuration in zm_create.sql (wrong paths: /tmp/, /usr/local/bin)
 # - fix Group(?)
-# - check BuildRequires: ffmpeg-devel (probably > 0.4.8)
 #
 Summary:	Zone Minder is a software motion detector with nice WWW GUI
 Summary(pl.UTF-8):	Zone Minder - programowy wykrywacz ruchu z miłym GUI przez WWW
 Name:		zoneminder
-# 1.23 is devel version; well stick to stable line next time :/
-Version:	1.23.3
-Release:	2
+Version:	1.24.1
+Release:	0.1
 License:	GPL v2
 Group:		Applications/Graphics
 Source0:	http://www.zoneminder.com/downloads/ZoneMinder-%{version}.tar.gz
-# Source0-md5:	ee803f0f71d6e67adf602c3557fb6bc9
+# Source0-md5:	1e4ce392d645cbb28037ecebc5a56584
 Source1:	zm-init
 Source2:	zm.conf
 Source3:	zm-logrotate_d
@@ -25,13 +23,12 @@ Source4:	http://dig.hopto.org/xlib_shm/xlib_shm-0.6.3.tar.bz2
 Source5:	mootools.js
 Patch0:		zm-fedora.patch
 Patch1:		%{name}-xlib_shm.patch
-Patch2:		%{name}-ffmpeg.patch
 URL:		http://www.zoneminder.com/
 BuildRequires:	autoconf
 BuildRequires:	automake
-BuildRequires:	ffmpeg-devel >= 0.4.9-4.20080822.1
+BuildRequires:	bzip2-devel
+BuildRequires:	ffmpeg-devel >= 0.4.9-4.20090225
 BuildRequires:	gnutls-devel
-BuildRequires:	lame-libs-devel
 BuildRequires:	libjpeg-devel
 BuildRequires:	libstdc++-devel
 BuildRequires:	mysql-devel
@@ -42,6 +39,7 @@ BuildRequires:	perl-DBI
 BuildRequires:	perl-Date-Manip
 BuildRequires:	perl-libwww
 BuildRequires:	perl-PHP-Serialization
+BuildRequires:	perl-Sys-Mmap
 BuildRequires:	rpmbuild(macros) >= 1.268
 BuildRequires:	xorg-lib-libXv-devel
 Requires(post,preun):	/sbin/chkconfig
@@ -83,7 +81,6 @@ różnymi kamerami USB i sieciowymi kamerami IP.
 cd xlib_shm-*
 %patch1 -p1
 cd ..
-%patch2 -p1
 
 sed -i -e 's#chown#true#g' -e 's#chmod#true#g' *.am */*.am */*/*.am
 
@@ -100,15 +97,15 @@ EOF
 %{__automake}
 %configure \
 	--with-libarch=%{_lib} \
-%ifnarch %{ix86} %{x8664}
+%ifarch %{ix86} %{x8664}
+	--enable-crashtrace \
+%else
 	--disable-crashtrace \
 %endif
+	--enable-mmap=yes \
 	--disable-debug \
-	--without-optimizecpu	\
 	--with-mysql=%{_prefix} \
-	--enable-mp3lame	\
 	--with-ffmpeg		\
-	--with-lame=%{_prefix}	\
 	--with-webgroup=http	\
 	--with-webuser=http		 \
 	--with-webdir=%{_datadir}/zoneminder/www	\
