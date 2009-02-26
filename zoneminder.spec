@@ -1,4 +1,5 @@
 # TODO:
+# - files check
 # - no globs for suid/sgid files
 # - webapps
 # - it requires some magick to work with cambozola
@@ -82,6 +83,7 @@ cd xlib_shm-*
 %patch1 -p1
 cd ..
 
+sed -i -e 's#-frepo##g' src/Makefile.am
 sed -i -e 's#chown#true#g' -e 's#chmod#true#g' *.am */*.am */*/*.am
 
 cat <<'EOF' >> db/zm_create.sql.in
@@ -180,8 +182,9 @@ fi
 %attr(755,root,root) %{_bindir}/zmvideo.pl
 %attr(755,root,root) %{_bindir}/zmwatch.pl
 %attr(755,root,root) %{_bindir}/zm_xlib_shm
+%dir %{_datadir}/ZoneMinder
+%{_datadir}/ZoneMinder/db
 %dir %{_datadir}/zoneminder
-%{_datadir}/zoneminder/db
 %dir %{_datadir}/zoneminder/www
 %{_datadir}/zoneminder/www/*.*
 %dir %{_datadir}/zoneminder/www/events
