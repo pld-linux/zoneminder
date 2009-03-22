@@ -140,7 +140,7 @@ do
         rm -rf $RPM_BUILD_ROOT%{_datadir}/zoneminder/www/$dir
         ln -sf ../../../..%{_localstatedir}/lib/zoneminder/$dir $RPM_BUILD_ROOT%{_datadir}/zoneminder/www/$dir
 done
-install -D -m 755 scripts/zm $RPM_BUILD_ROOT%{_initrddir}/zoneminder
+install -D -m 755 scripts/zm $RPM_BUILD_ROOT/etc/rc.d/init.d/zoneminder
 install -D -m 644 %{SOURCE2} $RPM_BUILD_ROOT%{_sysconfdir}/httpd/conf.d/zoneminder.conf
 install %{SOURCE3} $RPM_BUILD_ROOT%{_sysconfdir}/logrotate.d/%{name}
 install %{SOURCE5} $RPM_BUILD_ROOT%{_datadir}/zoneminder/www
