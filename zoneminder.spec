@@ -47,6 +47,8 @@ Requires(post,preun):	/sbin/chkconfig
 Requires:	perl-DBD-mysql
 Requires:	perl-Date-Manip
 Requires:	perl-MIME-tools
+Requires:	perl-PHP-Serialization
+Requires:	perl-Sys-Mmap
 Requires:	php(mysql)
 Requires:	php(pcre)
 Requires:	rc-scripts
