@@ -187,12 +187,19 @@ fi
 %dir %{_datadir}/zoneminder
 %dir %{_datadir}/zoneminder/www
 %{_datadir}/zoneminder/www/*.*
+%{_datadir}/zoneminder/www/ajax
+%{_datadir}/zoneminder/www/css
 %dir %{_datadir}/zoneminder/www/events
-%dir %{_datadir}/zoneminder/www/images
-%dir %{_datadir}/zoneminder/www/sounds
-%dir %{_datadir}/zoneminder/www/temp
 %{_datadir}/zoneminder/www/graphics
+%dir %{_datadir}/zoneminder/www/images
+%{_datadir}/zoneminder/www/includes
+%{_datadir}/zoneminder/www/js
+%{_datadir}/zoneminder/www/lang
+%{_datadir}/zoneminder/www/skins
 %{_datadir}/zoneminder/www/sounds
+%dir %{_datadir}/zoneminder/www/temp
+%{_datadir}/zoneminder/www/tools
+%{_datadir}/zoneminder/www/views
 %dir %{_libdir}/zoneminder
 %dir %{_libdir}/zoneminder/cgi-bin
 %attr(755,root,root) %{_libdir}/zoneminder/cgi-bin/nph-zms
