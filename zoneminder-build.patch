@@ -1,0 +1,10 @@
+--- ZoneMinder-1.24.2/src/zm_utils.cpp.org	2009-07-12 19:45:34.387460575 +0200
++++ ZoneMinder-1.24.2/src/zm_utils.cpp	2009-07-12 19:46:00.454902859 +0200
+@@ -21,6 +21,7 @@
+ #include "zm_utils.h"
+ 
+ #include <stdarg.h>
++#include <stdio.h>
+ 
+ const std::string stringtf( const char *format, ... )
+ {

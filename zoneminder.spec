@@ -9,12 +9,12 @@
 Summary:	Zone Minder is a software motion detector with nice WWW GUI
 Summary(pl.UTF-8):	Zone Minder - programowy wykrywacz ruchu z miłym GUI przez WWW
 Name:		zoneminder
-Version:	1.24.1
-Release:	2
+Version:	1.24.2
+Release:	1
 License:	GPL v2
 Group:		Applications/Graphics
 Source0:	http://www.zoneminder.com/downloads/ZoneMinder-%{version}.tar.gz
-# Source0-md5:	1e4ce392d645cbb28037ecebc5a56584
+# Source0-md5:	550d2f8f08852134028c3b1cf8fa437f
 Source1:	zm-init
 Source2:	zm.conf
 Source3:	zm-logrotate_d
@@ -24,6 +24,7 @@ Source4:	http://dig.hopto.org/xlib_shm/xlib_shm-0.6.3.tar.bz2
 Source5:	mootools.js
 Patch0:		zm-fedora.patch
 Patch1:		%{name}-xlib_shm.patch
+Patch2:		%{name}-build.patch
 URL:		http://www.zoneminder.com/
 BuildRequires:	autoconf
 BuildRequires:	automake
@@ -84,6 +85,7 @@ różnymi kamerami USB i sieciowymi kamerami IP.
 cd xlib_shm-*
 %patch1 -p1
 cd ..
+%patch2 -p1
 
 sed -i -e 's#-frepo##g' src/Makefile.am
 sed -i -e 's#chown#true#g' -e 's#chmod#true#g' *.am */*.am */*/*.am
