@@ -54,8 +54,8 @@ Requires:	php(mysql)
 Requires:	php(pcre)
 Requires:	rc-scripts
 Requires:	webserver(php)
-Requires(hint):	perl-MIME-Lite
 Suggests:	cambozola
+Suggests:	perl-MIME-Lite
 Obsoletes:	zm
 Obsoletes:	zm-X10
 Obsoletes:	zoneminder-X10
