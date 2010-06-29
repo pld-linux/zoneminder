@@ -63,6 +63,7 @@ Obsoletes:	zoneminder-X10
 Obsoletes:	zm-control
 Obsoletes:	zoneminder-control
 BuildRoot:	%{tmpdir}/%{name}-%{version}-root-%(id -u -n)
+%define		specflags	-D__STDC_CONSTANT_MACROS
 
 %description
 ZoneMinder is a set of applications which is intended to provide a
