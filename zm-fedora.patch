@@ -1,7 +1,11 @@
-diff -urN ZoneMinder-1.22.3.org/configure.ac ZoneMinder-1.22.3/configure.ac
---- ZoneMinder-1.22.3.org/configure.ac	2006-10-23 16:06:21.000000000 +0200
-+++ ZoneMinder-1.22.3/configure.ac	2007-11-29 18:08:52.809478549 +0100
-@@ -4,8 +4,6 @@
+diff -up ./configure.ac.dbinstall ./configure.ac
+--- ./configure.ac.dbinstall	2011-02-15 15:59:06.000000000 -0600
++++ ./configure.ac	2011-03-24 22:50:36.615225107 -0500
+@@ -1,11 +1,9 @@
+ AC_PREREQ(2.59)
+-AC_INIT(zm,1.24.3,support@zoneminder.com,ZoneMinder,http://www.zoneminder.com/downloads.html)
++AC_INIT(zm,1.24.3,support@zoneminder.com,ZoneMinder,http://www.zoneminder.com/downloads.html)
+ AM_INIT_AUTOMAKE
  AC_CONFIG_SRCDIR(src/zm.h)
  AM_CONFIG_HEADER(config.h)
  
@@ -10,21 +14,18 @@ diff -urN ZoneMinder-1.22.3.org/configure.ac ZoneMinder-1.22.3/configure.ac
  TIME_BUILD=`date +'%s'`
  AC_SUBST(TIME_BUILD)
  
-@@ -216,8 +214,10 @@
+@@ -354,6 +352,8 @@ AC_PROG_PERL_MODULES(X10::ActiveHome,,AC
  
  AC_DEFINE_DIR([BINDIR],[bindir],[Expanded binary directory])
  AC_DEFINE_DIR([LIBDIR],[libdir],[Expanded library directory])
 +AC_DEFINE_DIR([DATADIR],[datadir],[Expanded data directory])
 +AC_SUBST(PKGDATADIR,"$DATADIR/$PACKAGE")
- AC_SUBST(RUNDIR,"/var/run")
--AC_SUBST(ZM_RUNDIR,"$RUNDIR/zm")
-+AC_SUBST(ZM_RUNDIR,"$RUNDIR/$PACKAGE")
  AC_SUBST(ZM_PID,"$ZM_RUNDIR/zm.pid")
  AC_DEFINE_DIR([SYSCONFDIR],[sysconfdir],[Expanded configuration directory])
  AC_SUBST(ZM_CONFIG,"$SYSCONFDIR/zm.conf")
-diff -urN ZoneMinder-1.22.3.org/db/Makefile.am ZoneMinder-1.22.3/db/Makefile.am
---- ZoneMinder-1.22.3.org/db/Makefile.am	2006-10-23 16:05:45.000000000 +0200
-+++ ZoneMinder-1.22.3/db/Makefile.am	2007-11-29 18:08:52.809478549 +0100
+diff -up ./db/Makefile.am.dbinstall ./db/Makefile.am
+--- ./db/Makefile.am.dbinstall	2009-10-14 04:42:46.000000000 -0500
++++ ./db/Makefile.am	2011-03-24 22:50:14.173912137 -0500
 @@ -1,7 +1,16 @@
  AUTOMAKE_OPTIONS = gnu
  
@@ -42,114 +43,10 @@ diff -urN ZoneMinder-1.22.3.org/db/Makefile.am ZoneMinder-1.22.3/db/Makefile.am
  	zm_update-0.0.1.sql \
  	zm_update-0.9.7.sql \
  	zm_update-0.9.8.sql \
-diff -urN ZoneMinder-1.22.3.org/Makefile.am ZoneMinder-1.22.3/Makefile.am
---- ZoneMinder-1.22.3.org/Makefile.am	2006-01-15 18:41:21.000000000 +0100
-+++ ZoneMinder-1.22.3/Makefile.am	2007-11-29 18:08:52.819479054 +0100
-@@ -23,9 +23,9 @@
- # Yes, you are correct. This is a HACK!
- install-data-hook:
- 	( cd $(DESTDIR)$(sysconfdir); chown $(webuser):$(webgroup) $(sysconf_DATA); chmod 600 $(sysconf_DATA) )
--	-( if ! test -e $(RUNDIR); then mkdir $(RUNDIR); fi )
--	( if ! test -e $(ZM_RUNDIR); then mkdir $(ZM_RUNDIR); fi; chown $(webuser):$(webgroup) $(ZM_RUNDIR); chmod u+w $(ZM_RUNDIR) )
-+	-( if ! test -e $(DESTDIR)$(RUNDIR); then mkdir $(DESTDIR)$(RUNDIR); fi )
-+	( if ! test -e $(DESTDIR)$(ZM_RUNDIR); then mkdir $(DESTDIR)$(ZM_RUNDIR); fi; chown $(webuser):$(webgroup) $(DESTDIR)$(ZM_RUNDIR); chmod u+w $(DESTDIR)$(ZM_RUNDIR) )
- 
- uninstall-hook:
- 	@-( cd $(DESTDIR)$(webdir); rm -rf events graphics images sounds temp )
--	@-( rm -rf $(ZM_RUNDIR) )
-+	@-( rm -rf $(DESTDIR)$(ZM_RUNDIR) )
-diff -urN ZoneMinder-1.22.3.org/scripts/zm.in ZoneMinder-1.22.3/scripts/zm.in
---- ZoneMinder-1.22.3.org/scripts/zm.in	2006-11-16 10:06:37.000000000 +0100
-+++ ZoneMinder-1.22.3/scripts/zm.in	2007-11-29 18:11:09.786431365 +0100
-@@ -6,10 +6,10 @@
- # Source function library.
- . /etc/rc.d/init.d/functions
- 
--prog=ZoneMinder
-+prog="@PACKAGE@"
- ZM_CONFIG="@ZM_CONFIG@"
- pidfile="@ZM_RUNDIR@"
--LOCKFILE=/var/lock/subsys/zm
-+LOCKFILE=/var/lock/subsys/$prog
- 
- loadconf()
- {
-@@ -27,9 +27,8 @@
- start()
- {
- 	zmupdate || return $?
--	loadconf || return $?
- 	#Make sure the directory for our PID folder exists or create one.
--	[ ! -d /var/run/zm ] \
-+	[ ! -d $pidfile ] \
- 		&& mkdir -m 774 $pidfile \
- 		&& chown $ZM_WEB_USER:$ZM_WEB_GROUP $pidfile
- 	#Make sure the folder for the socks file exists or create one
-@@ -38,44 +37,38 @@
- 	[ ! -d $ZM_PATH_SOCK ] \
- 		&& mkdir -m 774 $ZM_PATH_SOCK \
- 		&& chown $ZM_WEB_USER:$ZM_WEB_GROUP $ZM_PATH_SOCK
--	echo -n $"Starting $prog: "
--	$command start
-+	msg_starting "${prog}"
-+	daemon $command start
- 	RETVAL=$?
--	[ $RETVAL = 0 ] && success || failure
--	echo
- 	[ $RETVAL = 0 ] && touch $LOCKFILE
- 	return $RETVAL
- }
- 
- stop()
- {
--	loadconf
--	echo -n $"Stopping $prog: "
--	$command stop
-+	msg_stopping "${prog}"
-+	daemon $command stop
- 	RETVAL=$?
--	[ $RETVAL = 0 ] && success || failure
--	echo
- 	[ $RETVAL = 0 ] && rm -f $LOCKFILE
- }
- 
- zmstatus()
- {
--	loadconf
- 	result=`$command status`
- 	if [ "$result" = "running" ]; then
--		echo "ZoneMinder is running"
-+		echo "$prog is running"
- 		$ZM_PATH_BIN/zmu -l
- 		RETVAL=0
- 	else
--		echo "ZoneMinder is stopped"
-+		echo "$prog is stopped"
- 		RETVAL=1
- 	fi
- }
- 
- zmupdate()
- {
--	if [ -x $ZM_PATH_BIN/zm_update ]; then
--		$ZM_PATH_BIN/zm_update noi
-+	if [ -x $ZM_PATH_BIN/zmupdate.pl ]; then
-+		$ZM_PATH_BIN/zmupdate.pl --freshen >/dev/null
- 	fi
- }
- 
-@@ -92,7 +85,6 @@
- 		start
- 		;;
- 	'condrestart')
--		loadconf
- 		result=`$ZM_PATH_BIN/zmdc.pl check`
- 		if [ "$result" = "running" ]; then
- 			$ZM_PATH_BIN/zmdc.pl shutdown > /dev/null
-diff -urN ZoneMinder-1.22.3.org/scripts/zmupdate.pl ZoneMinder-1.22.3/scripts/zmupdate.pl
---- ZoneMinder-1.22.3.org/scripts/zmupdate.pl	2006-11-24 15:39:38.000000000 +0100
-+++ ZoneMinder-1.22.3/scripts/zmupdate.pl	2007-11-29 18:08:52.809478549 +0100
-@@ -402,7 +402,7 @@
+diff -up ./scripts/zmupdate.pl.in.dbinstall ./scripts/zmupdate.pl.in
+--- ./scripts/zmupdate.pl.in.dbinstall	2011-01-17 12:21:37.000000000 -0600
++++ ./scripts/zmupdate.pl.in	2011-03-24 22:50:14.174912107 -0500
+@@ -403,7 +403,7 @@ if ( $version )
                  $command .= " -p".$db_pass;
              }
          }
@@ -158,9 +55,9 @@ diff -urN ZoneMinder-1.22.3.org/scripts/zmupdate.pl ZoneMinder-1.22.3/scripts/zm
  
          print( "Executing '$command'\n" ) if ( DBG_LEVEL > 0 );
          my $output = qx($command);
-diff -urN ZoneMinder-1.22.3.org/zm.conf.in ZoneMinder-1.22.3/zm.conf.in
---- ZoneMinder-1.22.3.org/zm.conf.in	2006-11-16 10:06:30.000000000 +0100
-+++ ZoneMinder-1.22.3/zm.conf.in	2007-11-29 18:08:52.809478549 +0100
+diff -up ./zm.conf.in.dbinstall ./zm.conf.in
+--- ./zm.conf.in.dbinstall	2008-07-25 04:48:16.000000000 -0500
++++ ./zm.conf.in	2011-03-24 22:50:14.175912077 -0500
 @@ -12,8 +12,8 @@
  # Current version of ZoneMinder
  ZM_VERSION=@VERSION@
