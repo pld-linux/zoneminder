@@ -1,0 +1,33 @@
+--- ZoneMinder-1.24.4/scripts/zm.in.org	2011-07-11 19:20:38.227640562 +0200
++++ ZoneMinder-1.24.4/scripts/zm.in	2011-07-11 19:26:14.075758621 +0200
+@@ -45,24 +45,20 @@
+ 	[ ! -d $ZM_PATH_SOCK ] \
+ 		&& mkdir -m 774 $ZM_PATH_SOCK \
+ 		&& chown $ZM_WEB_USER:$ZM_WEB_GROUP $ZM_PATH_SOCK
+-	echo -n $"Starting $prog: "
+-	$command start
++	msg_starting "zoneminder"
++	daemon $command start
+ 	RETVAL=$?
+-	[ $RETVAL = 0 ] && success || failure
+-	echo
+-	[ $RETVAL = 0 ] && touch $LOCKFILE
++	[ $RETVAL -eq 0 ] && touch $LOCKFILE
+ 	return $RETVAL
+ }
+ 
+ stop()
+ {
+ 	loadconf
+-	echo -n $"Stopping $prog: "
+-	$command stop
++	msg_stopping "zoneminder"
++	daemon $command stop
+ 	RETVAL=$?
+-	[ $RETVAL = 0 ] && success || failure
+-	echo
+-	[ $RETVAL = 0 ] && rm -f $LOCKFILE
++	rm -f $LOCKFILE
+ }
+ 
+ zmstatus()

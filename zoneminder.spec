@@ -25,6 +25,7 @@ Source5:	mootools.js
 Patch0:		zm-fedora.patch
 Patch1:		%{name}-xlib_shm.patch
 Patch2:		%{name}-build.patch
+Patch3:		%{name}-init.patch
 URL:		http://www.zoneminder.com/
 BuildRequires:	autoconf
 BuildRequires:	automake
@@ -82,11 +83,14 @@ różnymi kamerami USB i sieciowymi kamerami IP.
 
 %prep
 %setup -q -n ZoneMinder-%{version} -a4
+%undos scripts/zm.in
+
 %patch0 -p1
 cd xlib_shm-*
 %patch1 -p1
 cd ..
 %patch2 -p1
+%patch3 -p1
 
 sed -i -e 's#-frepo##g' src/Makefile.am
 sed -i -e 's#chown#true#g' -e 's#chmod#true#g' *.am */*.am */*/*.am
