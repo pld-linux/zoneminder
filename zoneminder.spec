@@ -9,12 +9,12 @@
 Summary:	Zone Minder is a software motion detector with nice WWW GUI
 Summary(pl.UTF-8):	Zone Minder - programowy wykrywacz ruchu z miłym GUI przez WWW
 Name:		zoneminder
-Version:	1.24.4
-Release:	3
+Version:	1.25.0
+Release:	1
 License:	GPL v2
 Group:		Applications/Graphics
 Source0:	http://www.zoneminder.com/downloads/ZoneMinder-%{version}.tar.gz
-# Source0-md5:	910adc20e5b2dd9fac3c8e7456e67ffc
+# Source0-md5:	eaefa14befd482154970541252aa1a39
 Source1:	zm-init
 Source2:	zm.conf
 Source3:	zm-logrotate_d
