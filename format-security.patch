@@ -1,0 +1,11 @@
+--- ZoneMinder-1.25.0/src/zm_signal.cpp~	2011-06-21 11:19:11.000000000 +0200
++++ ZoneMinder-1.25.0/src/zm_signal.cpp	2012-11-13 18:33:27.135723612 +0100
+@@ -110,7 +110,7 @@
+ 	char **messages = backtrace_symbols( trace, trace_size );
+     if ( size_t offset = strcspn( messages[trace_size-1], " " ) )
+     {
+-        snprintf( cmd_ptr, sizeof(cmd)-(cmd_ptr-cmd), messages[trace_size-1] );
++        snprintf( cmd_ptr, sizeof(cmd)-(cmd_ptr-cmd), "%s", messages[trace_size-1] );
+         cmd_ptr += offset;
+     }
+     else
