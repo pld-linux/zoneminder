@@ -1,0 +1,82 @@
+--- ZoneMinder-1.25.0/configure.ac~	2012-11-13 18:16:48.389092179 +0100
++++ ZoneMinder-1.25.0/configure.ac	2012-11-13 18:21:17.022416030 +0100
+@@ -273,8 +273,8 @@
+ AC_CHECK_LIB(avutil,av_malloc,,AC_MSG_WARN(libavutil.a may be required for MPEG streaming))
+ # Don't bother to warn about this one
+ AC_CHECK_LIB(avcore,av_image_copy,,)
+-AC_CHECK_LIB(avcodec,avcodec_init,,AC_MSG_WARN(libavcodec.a is required for MPEG streaming))
+-AC_CHECK_LIB(avformat,av_new_stream,,AC_MSG_WARN(libavformat.a is required for MPEG streaming))
++AC_CHECK_LIB(avcodec,avcodec_register_all,,AC_MSG_WARN(libavcodec.a is required for MPEG streaming))
++AC_CHECK_LIB(avformat,avformat_new_stream,,AC_MSG_WARN(libavformat.a is required for MPEG streaming))
+ AC_CHECK_LIB(avdevice,avdevice_register_all,,AC_MSG_WARN(libavdevice.a may be required for MPEG streaming))
+ AC_CHECK_LIB(swscale,sws_scale,,,-lswscale)
+ AC_CHECK_LIB(bz2,BZ2_bzCompress,,AC_MSG_WARN(zm requires libbz2.a for recent versions of ffmpeg))
+--- ZoneMinder-1.25.0/src/zm_ffmpeg_camera.cpp~	2011-06-21 09:40:13.000000000 +0200
++++ ZoneMinder-1.25.0/src/zm_ffmpeg_camera.cpp	2012-11-13 18:24:16.935743023 +0100
+@@ -91,7 +91,7 @@
+     Info( "Priming capture from %s", mPath.c_str() );
+ 
+     // Open the input, not necessarily a file
+-    if ( av_open_input_file( &mFormatContext, mPath.c_str(), NULL, 0, NULL ) !=0 )
++    if ( avformat_open_input(&mFormatContext, mPath.c_str(), NULL, NULL ) !=0 )
+         Fatal( "Unable to open input %s due to: %s", mPath.c_str(), strerror(errno) );
+ 
+     // Locate stream info from input
+--- ZoneMinder-1.25.0/src/zm_mpeg.cpp~	2011-05-15 22:39:06.000000000 +0200
++++ ZoneMinder-1.25.0/src/zm_mpeg.cpp	2012-11-13 18:28:26.225734227 +0100
+@@ -126,17 +126,6 @@
+ 	}
+ }
+ 
+-void VideoStream::SetParameters()
+-{
+-	/* set the output parameters (must be done even if no
+-	   parameters). */
+-	if ( av_set_parameters(ofc, NULL) < 0 )
+-	{
+-		Panic( "Invalid output format parameters" );
+-	}
+-	//dump_format(ofc, 0, filename, 1);
+-}
+-
+ const char *VideoStream::MimeType() const
+ {
+ 	for ( int i = 0; i < sizeof(mime_data)/sizeof(*mime_data); i++ )
+@@ -210,7 +210,9 @@
+ 	/* open the output file, if needed */
+ 	if ( !(of->flags & AVFMT_NOFILE) )
+ 	{
+-#if LIBAVUTIL_VERSION_INT >= AV_VERSION_INT(51,2,1)
++#if LIBAVUTIL_VERSION_INT >= AV_VERSION_INT(51,73,100)
++		if ( avio_open(&ofc->pb, filename, AVIO_FLAG_WRITE) < 0 )
++#elif LIBAVUTIL_VERSION_INT >= AV_VERSION_INT(51,2,1)
+ 		if ( avio_open(&ofc->pb, filename, URL_WRONLY) < 0 )
+ #else
+ 		if ( url_fopen(&ofc->pb, filename, URL_WRONLY) < 0 )
+@@ -241,7 +230,7 @@
+ 	}
+ 
+ 	/* write the stream header, if any */
+-	av_write_header(ofc);
++	avformat_write_header(ofc, NULL);
+ }
+ 
+ VideoStream::VideoStream( const char *filename, const char *format, int bitrate, double frame_rate, int colours, int width, int height )
+@@ -253,7 +242,6 @@
+ 
+ 	SetupFormat( filename, format );
+ 	SetupCodec( colours, width, height, bitrate, frame_rate );
+-	SetParameters();
+ }
+ 
+ VideoStream::~VideoStream()
+--- ZoneMinder-1.25.0/src/zm_mpeg.h~	2009-05-28 10:20:59.000000000 +0200
++++ ZoneMinder-1.25.0/src/zm_mpeg.h	2012-11-13 18:28:39.735733749 +0100
+@@ -55,7 +55,6 @@
+ 
+ 	void SetupFormat( const char *p_filename, const char *format );
+ 	void SetupCodec( int colours, int width, int height, int bitrate, double frame_rate );
+-	void SetParameters();
+ 
+ public:
+ 	VideoStream( const char *filename, const char *format, int bitrate, double frame_rate, int colours, int width, int height );
