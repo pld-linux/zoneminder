@@ -1,7 +1,6 @@
 # TODO:
 # - files check
 # - no globs for suid/sgid files
-# - webapps
 # - it requires some magick to work with cambozola
 # - check default configuration in zm_create.sql (wrong paths: /tmp/, /usr/local/bin)
 # - fix Group(?)
@@ -31,6 +30,7 @@ Patch5:		%{name}-1.25.0-gcrypt.patch
 Patch6:		%{name}-1.25.0-kernel35.patch
 Patch7:		ffmpeg10.patch
 Patch8:		format-security.patch
+Patch9:		am.patch
 URL:		http://www.zoneminder.com/
 BuildRequires:	autoconf
 BuildRequires:	automake
@@ -59,6 +59,7 @@ Requires:	perl-Sys-Mmap
 Requires:	php(mysql)
 Requires:	php(pcre)
 Requires:	rc-scripts
+Requires:	webapps
 Requires:	webserver(php)
 Suggests:	cambozola
 Suggests:	perl-MIME-Lite
@@ -67,8 +68,14 @@ Obsoletes:	zm-X10
 Obsoletes:	zoneminder-X10
 Obsoletes:	zm-control
 Obsoletes:	zoneminder-control
+Conflicts:	apache-base < 2.4.0-1
 BuildRoot:	%{tmpdir}/%{name}-%{version}-root-%(id -u -n)
+
 %define		specflags	-D__STDC_CONSTANT_MACROS
+
+%define		_webapps	/etc/webapps
+%define		_webapp		%{name}
+%define		_appdir		%{_datadir}/%{_webapp}
 
 %description
 ZoneMinder is a set of applications which is intended to provide a
@@ -101,6 +108,7 @@ cd ..
 %patch6 -p1
 %patch7 -p1
 %patch8 -p1
+%patch9 -p1
 
 sed -i -e 's#-frepo##g' src/Makefile.am
 sed -i -e 's#chown#true#g' -e 's#chmod#true#g' *.am */*.am */*/*.am
@@ -129,8 +137,8 @@ EOF
 	--with-ffmpeg		\
 	--with-webgroup=http	\
 	--with-webuser=http		 \
-	--with-webdir=%{_datadir}/zoneminder/www	\
-	--with-cgidir=%{_libdir}/zoneminder/cgi-bin
+	--with-webdir=%{_appdir}/www	\
+	--with-cgidir=%{_libdir}/%{name}/cgi-bin
 
 %{__make}
 
@@ -142,7 +150,8 @@ EOF
 
 %install
 rm -rf $RPM_BUILD_ROOT
-install -d $RPM_BUILD_ROOT{%{_localstatedir}/{run,log/zoneminder},/etc/logrotate.d}
+install -d $RPM_BUILD_ROOT{%{_localstatedir}/{run,log/zoneminder},/etc/logrotate.d} \
+	$RPM_BUILD_ROOT%{_webapps}/%{_webapp}
 
 %{__make} install \
 	DESTDIR=$RPM_BUILD_ROOT \
@@ -156,15 +165,16 @@ install -m 755 -d $RPM_BUILD_ROOT%{_localstatedir}/log/zoneminder
 for dir in events images temp
 do
         install -m 755 -d $RPM_BUILD_ROOT%{_localstatedir}/lib/zoneminder/$dir
-        rm -rf $RPM_BUILD_ROOT%{_datadir}/zoneminder/www/$dir
-        ln -sf ../../../..%{_localstatedir}/lib/zoneminder/$dir $RPM_BUILD_ROOT%{_datadir}/zoneminder/www/$dir
+        rm -rf $RPM_BUILD_ROOT%{_appdir}/www/$dir
+        ln -sf ../../../..%{_localstatedir}/lib/zoneminder/$dir $RPM_BUILD_ROOT%{_appdir}/www/$dir
 done
 install -D -m 755 scripts/zm $RPM_BUILD_ROOT/etc/rc.d/init.d/zoneminder
-install -D -m 644 %{SOURCE2} $RPM_BUILD_ROOT%{_sysconfdir}/httpd/conf.d/zoneminder.conf
-install %{SOURCE3} $RPM_BUILD_ROOT%{_sysconfdir}/logrotate.d/%{name}
-install %{SOURCE5} $RPM_BUILD_ROOT%{_datadir}/zoneminder/www
+install %{SOURCE3} $RPM_BUILD_ROOT/etc/logrotate.d/%{name}
+install %{SOURCE5} $RPM_BUILD_ROOT%{_appdir}/www
 
 install zm_xlib_shm $RPM_BUILD_ROOT%{_bindir}
+
+cp -p %{SOURCE2} $RPM_BUILD_ROOT%{_webapps}/%{_webapp}/httpd.conf
 
 %clean
 rm -rf $RPM_BUILD_ROOT
@@ -178,11 +188,25 @@ if [ "$1" = "0" ]; then
 	/sbin/chkconfig --del zoneminder
 fi
 
+%triggerin -- apache-base
+%webapp_register httpd %{_webapp}
+
+%triggerun -- apache-base
+%webapp_unregister httpd %{_webapp}
+
+%triggerpostun -- %{name} < 1.25.0-6
+if [ -f %{_sysconfdir}/httpd/conf.d/zoneminder.conf.rpmsave ]; then
+	mv %{_sysconfdir}/httpd/conf.d/zoneminder.conf.rpmsave %{_webapps}/%{_webapp}/httpd.conf.rpmsave
+	echo "Old apache config has been saved as %{_webapps}/%{_webapp}/httpd.conf.rpmsave"
+fi
+exit 0
+
 %files
 %defattr(644,root,root,755)
 %doc AUTHORS README
+%dir %attr(750,root,http) %{_webapps}/%{_webapp}
+%attr(640,root,root) %config(noreplace) %verify(not md5 mtime size) %{_webapps}/%{_webapp}/httpd.conf
 %config(noreplace) %attr(640,root,http) %{_sysconfdir}/zm.conf
-%config(noreplace) %{_sysconfdir}/httpd/conf.d/zoneminder.conf
 %config(noreplace) /etc/logrotate.d/%{name}
 %attr(754,root,root) /etc/rc.d/init.d/zoneminder
 %attr(4755,root,root) %{_bindir}/zmfix
@@ -204,26 +228,26 @@ fi
 %attr(755,root,root) %{_bindir}/zm_xlib_shm
 %dir %{_datadir}/ZoneMinder
 %{_datadir}/ZoneMinder/db
-%dir %{_datadir}/zoneminder
-%dir %{_datadir}/zoneminder/www
-%{_datadir}/zoneminder/www/*.*
-%{_datadir}/zoneminder/www/ajax
-%{_datadir}/zoneminder/www/css
-%dir %{_datadir}/zoneminder/www/events
-%{_datadir}/zoneminder/www/graphics
-%dir %{_datadir}/zoneminder/www/images
-%{_datadir}/zoneminder/www/includes
-%{_datadir}/zoneminder/www/js
-%{_datadir}/zoneminder/www/lang
-%{_datadir}/zoneminder/www/skins
-%{_datadir}/zoneminder/www/sounds
-%dir %{_datadir}/zoneminder/www/temp
-%{_datadir}/zoneminder/www/tools
-%{_datadir}/zoneminder/www/views
-%dir %{_libdir}/zoneminder
-%dir %{_libdir}/zoneminder/cgi-bin
-%attr(755,root,root) %{_libdir}/zoneminder/cgi-bin/nph-zms
-%attr(755,root,root) %{_libdir}/zoneminder/cgi-bin/zms
+%dir %{_appdir}
+%dir %{_appdir}/www
+%{_appdir}/www/*.*
+%{_appdir}/www/ajax
+%{_appdir}/www/css
+%dir %{_appdir}/www/events
+%{_appdir}/www/graphics
+%dir %{_appdir}/www/images
+%{_appdir}/www/includes
+%{_appdir}/www/js
+%{_appdir}/www/lang
+%{_appdir}/www/skins
+%{_appdir}/www/sounds
+%dir %{_appdir}/www/temp
+%{_appdir}/www/tools
+%{_appdir}/www/views
+%dir %{_libdir}/%{name}
+%dir %{_libdir}/%{name}/cgi-bin
+%attr(755,root,root) %{_libdir}/%{name}/cgi-bin/nph-zms
+%attr(755,root,root) %{_libdir}/%{name}/cgi-bin/zms
 
 %dir %attr(770,root,http) /var/log/zoneminder
 %dir %attr(750,root,http) /var/lib/zoneminder

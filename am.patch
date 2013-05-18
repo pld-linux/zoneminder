@@ -1,0 +1,11 @@
+--- ZoneMinder-1.25.0/configure.ac~	2013-05-18 18:30:09.051564761 +0200
++++ ZoneMinder-1.25.0/configure.ac	2013-05-18 18:32:20.381563810 +0200
+@@ -2,7 +2,7 @@
+ AC_INIT(zm,1.25.0,[http://www.zoneminder.com/forums/ - Please check FAQ first],ZoneMinder,http://www.zoneminder.com/downloads.html)
+ AM_INIT_AUTOMAKE
+ AC_CONFIG_SRCDIR(src/zm.h)
+-AM_CONFIG_HEADER(config.h)
++AC_CONFIG_HEADERS(config.h)
+ 
+ TIME_BUILD=`date +'%s'`
+ AC_SUBST(TIME_BUILD)
