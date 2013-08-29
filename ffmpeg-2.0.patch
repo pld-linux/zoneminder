@@ -1,0 +1,53 @@
+--- ZoneMinder-1.25.0/configure.ac~	2013-07-15 14:26:39.321337932 +0800
++++ ZoneMinder-1.25.0/configure.ac	2013-07-15 14:27:06.812123235 +0800
+@@ -276,7 +276,7 @@
+ AC_CHECK_LIB(avutil,av_malloc,,AC_MSG_WARN(libavutil.a may be required for MPEG streaming))
+ # Don't bother to warn about this one
+ AC_CHECK_LIB(avcore,av_image_copy,,)
+-AC_CHECK_LIB(avcodec,avcodec_register_all,,AC_MSG_WARN(libavcodec.a is required for MPEG streaming))
++AC_CHECK_LIB(avcodec,avcodec_open2,,AC_MSG_WARN(libavcodec.a is required for MPEG streaming))
+ AC_CHECK_LIB(avformat,avformat_new_stream,,AC_MSG_WARN(libavformat.a is required for MPEG streaming))
+ AC_CHECK_LIB(avdevice,avdevice_register_all,,AC_MSG_WARN(libavdevice.a may be required for MPEG streaming))
+ AC_CHECK_LIB(swscale,sws_scale,,,-lswscale)
+--- ZoneMinder-1.25.0/src/zm_mpeg.cpp~	2013-07-15 14:27:59.593630969 +0800
++++ ZoneMinder-1.25.0/src/zm_mpeg.cpp	2013-07-15 14:31:49.580200474 +0800
+@@ -215,7 +215,7 @@
+ 		}
+ 
+ 		/* open the codec */
+-		if ( avcodec_open(c, codec) < 0 )
++		if ( avcodec_open2(c, codec, NULL) < 0 )
+ 		{
+ 			Panic( "Could not open codec" );
+ 		}
+--- ZoneMinder-1.25.0/src/zm_remote_camera_rtsp.cpp~	2013-07-15 14:27:59.543629539 +0800
++++ ZoneMinder-1.25.0/src/zm_remote_camera_rtsp.cpp	2013-07-15 14:32:19.011041121 +0800
+@@ -183,7 +183,7 @@
+         Panic( "Unable to locate codec %d decoder", mCodecContext->codec_id );
+ 
+     // Open codec
+-    if ( avcodec_open( codecContext, codec ) < 0 )
++    if ( avcodec_open2( codecContext, codec, NULL ) < 0 )
+         Panic( "Can't open codec" );
+ 
+     // Allocate space for the native video frame
+--- ZoneMinder-1.25.0/src/zm_sdp.h~	2011-05-16 04:39:06.000000000 +0800
++++ ZoneMinder-1.25.0/src/zm_sdp.h	2013-07-15 14:32:39.311620995 +0800
+@@ -41,7 +41,7 @@
+         int payloadType;
+         const char payloadName[6];
+         enum AVMediaType codecType;
+-        enum CodecID codecId;
++        enum AVCodecID codecId;
+         int clockRate;
+         int autoChannels;
+     };
+@@ -50,7 +50,7 @@
+     {
+         const char payloadName[32];
+         enum AVMediaType codecType;
+-        enum CodecID codecId;
++        enum AVCodecID codecId;
+         //int clockRate;
+         //int autoChannels;
+     };

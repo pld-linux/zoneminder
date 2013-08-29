@@ -31,6 +31,7 @@ Patch6:		%{name}-1.25.0-kernel35.patch
 Patch7:		ffmpeg10.patch
 Patch8:		format-security.patch
 Patch9:		am.patch
+Patch10:	ffmpeg-2.0.patch
 URL:		http://www.zoneminder.com/
 BuildRequires:	autoconf
 BuildRequires:	automake
@@ -109,6 +110,7 @@ cd ..
 %patch7 -p1
 %patch8 -p1
 %patch9 -p1
+%patch10 -p1
 
 sed -i -e 's#-frepo##g' src/Makefile.am
 sed -i -e 's#chown#true#g' -e 's#chmod#true#g' *.am */*.am */*/*.am
