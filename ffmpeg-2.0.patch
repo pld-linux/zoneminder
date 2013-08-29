@@ -51,3 +51,14 @@
          //int clockRate;
          //int autoChannels;
      };
+--- ZoneMinder-1.25.0/src/zm_ffmpeg_camera.cpp~	2013-08-29 18:09:12.227817417 +0200
++++ ZoneMinder-1.25.0/src/zm_ffmpeg_camera.cpp	2013-08-29 18:11:09.392520063 +0200
+@@ -122,7 +122,7 @@
+         Fatal( "Can't find codec for video stream from %s", mPath.c_str() );
+ 
+     // Open the codec
+-    if ( avcodec_open( mCodecContext, mCodec ) < 0 )
++    if ( avcodec_open2( mCodecContext, mCodec, NULL ) < 0 )
+         Fatal( "Unable to open codec for video stream from %s", mPath.c_str() );
+ 
+     // Allocate space for the native video frame
