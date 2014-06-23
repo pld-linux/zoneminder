@@ -22,6 +22,8 @@ Source4:	http://dig.hopto.org/xlib_shm/xlib_shm-0.6.3.tar.bz2
 # http://mootools.net/download
 Source5:	mootools.js
 Source6:	%{name}-tmpfiles.conf
+Source7:	http://downloads.sourceforge.net/jscalendar/jscalendar-1.0.zip
+# Source7-md5:	10f2160fe68294013efcd1473cd36f72
 Patch1:		%{name}-xlib_shm.patch
 Patch2:		%{name}-build.patch
 Patch3:		%{name}-init.patch
@@ -98,7 +100,7 @@ For Linux (V4L) i był testowany z kamerami podłączonymi do kart BTTV,
 różnymi kamerami USB i sieciowymi kamerami IP.
 
 %prep
-%setup -q -n ZoneMinder-%{version} -a4
+%setup -q -n ZoneMinder-%{version} -a4 -a7
 %undos scripts/zm.in
 
 cd xlib_shm-*
@@ -116,6 +118,10 @@ UPDATE Config SET Value = '/var/run/zoneminder' WHERE Name = 'ZM_PATH_SOCKS';
 UPDATE Config SET Value = '/var/log/zoneminder' WHERE Name = 'ZM_PATH_LOGS';
 GRANT SELECT,INSERT,UPDATE,DELETE ON zm.* TO 'zmuser'@localhost IDENTIFIED BY 'zmpass';
 EOF
+
+install -d jscalendar-doc
+mv jscalendar-[0-9]*/{*html,*php,doc/*,README} jscalendar-doc
+rm -rf jscalendar-[0-9]*/doc
 
 %build
 %{__autoheader}
@@ -172,6 +178,10 @@ install zm_xlib_shm $RPM_BUILD_ROOT%{_bindir}
 cp -p %{SOURCE2} $RPM_BUILD_ROOT%{_webapps}/%{_webapp}/httpd.conf
 cp -p %{SOURCE6} $RPM_BUILD_ROOT%{_sysconfdir}/tmpfiles.d/%{name}.conf
 
+# Install jscalendar - this really should be in its own package
+install -d -m 755 $RPM_BUILD_ROOT%{_appdir}/www/jscalendar
+cp -rp jscalendar-[0-9]*/* $RPM_BUILD_ROOT%{_appdir}/www/jscalendar
+
 %clean
 rm -rf $RPM_BUILD_ROOT
 
@@ -199,7 +209,7 @@ exit 0
 
 %files
 %defattr(644,root,root,755)
-%doc AUTHORS BUGS ChangeLog README.md
+%doc AUTHORS BUGS ChangeLog README.md jscalendar-doc
 %dir %attr(750,root,http) %{_webapps}/%{_webapp}
 %attr(640,root,root) %config(noreplace) %verify(not md5 mtime size) %{_webapps}/%{_webapp}/httpd.conf
 %config(noreplace) %attr(640,root,http) %{_sysconfdir}/zm.conf
@@ -233,6 +243,7 @@ exit 0
 %dir %{_appdir}/www/images
 %{_appdir}/www/includes
 %{_appdir}/www/js
+%{_appdir}/www/jscalendar
 %{_appdir}/www/lang
 %{_appdir}/www/skins
 %{_appdir}/www/sounds
