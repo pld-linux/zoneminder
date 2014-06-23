@@ -45,6 +45,7 @@ BuildRequires:	perl-Date-Manip
 BuildRequires:	perl-Device-SerialPort
 BuildRequires:	perl-Expect
 BuildRequires:	perl-Net-SFTP
+BuildRequires:	perl-Net-SFTP-Foreign
 BuildRequires:	perl-PHP-Serialization
 BuildRequires:	perl-Sys-Mmap
 BuildRequires:	perl-devel
@@ -60,6 +61,7 @@ Requires:	perl-Device-SerialPort
 Requires:	perl-Expect
 Requires:	perl-MIME-tools
 Requires:	perl-Net-SFTP
+Requires:	perl-Net-SFTP-Foreign
 Requires:	perl-PHP-Serialization
 Requires:	perl-Sys-Mmap
 Requires:	php(mysql)
