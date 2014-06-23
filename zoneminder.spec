@@ -8,12 +8,12 @@
 Summary:	Zone Minder is a software motion detector with nice WWW GUI
 Summary(pl.UTF-8):	Zone Minder - programowy wykrywacz ruchu z miłym GUI przez WWW
 Name:		zoneminder
-Version:	1.25.0
-Release:	8
+Version:	1.27.0
+Release:	1
 License:	GPL v2
 Group:		Applications/Graphics
-Source0:	http://www.zoneminder.com/downloads/ZoneMinder-%{version}.tar.gz
-# Source0-md5:	eaefa14befd482154970541252aa1a39
+Source0:	https://github.com/ZoneMinder/ZoneMinder/archive/v%{version}.tar.gz
+# Source0-md5:	9ff149baa1a0d04931fbafcdb3200fab
 Source1:	zm-init
 Source2:	zm.conf
 Source3:	zm-logrotate_d
@@ -21,40 +21,43 @@ Source4:	http://dig.hopto.org/xlib_shm/xlib_shm-0.6.3.tar.bz2
 # Source4-md5:	469a65bdf658e68e23445f5cc6f07f07
 # http://mootools.net/download
 Source5:	mootools.js
-Patch0:		zm-fedora.patch
+Source6:	%{name}-tmpfiles.conf
 Patch1:		%{name}-xlib_shm.patch
 Patch2:		%{name}-build.patch
 Patch3:		%{name}-init.patch
-Patch4:		%{name}-1.25.0-gcc47.patch
-Patch5:		%{name}-1.25.0-gcrypt.patch
-Patch6:		%{name}-1.25.0-kernel35.patch
-Patch7:		ffmpeg10.patch
-Patch8:		format-security.patch
-Patch9:		am.patch
-Patch10:	ffmpeg-2.0.patch
 URL:		http://www.zoneminder.com/
 BuildRequires:	autoconf
 BuildRequires:	automake
 BuildRequires:	bzip2-devel
+BuildRequires:	curl-devel
 BuildRequires:	ffmpeg-devel >= 0.4.9-4.20090225
 BuildRequires:	gnutls-devel
 BuildRequires:	libjpeg-devel
 BuildRequires:	libstdc++-devel
+BuildRequires:	libx264-devel
 BuildRequires:	mysql-devel
 BuildRequires:	pcre-devel
-BuildRequires:	perl-devel
 BuildRequires:	perl-DBD-mysql
 BuildRequires:	perl-DBI
 BuildRequires:	perl-Date-Manip
-BuildRequires:	perl-libwww
+BuildRequires:	perl-Device-SerialPort
+BuildRequires:	perl-Expect
+BuildRequires:	perl-Net-SFTP
 BuildRequires:	perl-PHP-Serialization
 BuildRequires:	perl-Sys-Mmap
+BuildRequires:	perl-devel
+BuildRequires:	perl-libwww
 BuildRequires:	rpmbuild(macros) >= 1.268
+BuildRequires:	vlc-devel
 BuildRequires:	xorg-lib-libXv-devel
+BuildRequires:	zlib-devel
 Requires(post,preun):	/sbin/chkconfig
 Requires:	perl-DBD-mysql
 Requires:	perl-Date-Manip
+Requires:	perl-Device-SerialPort
+Requires:	perl-Expect
 Requires:	perl-MIME-tools
+Requires:	perl-Net-SFTP
 Requires:	perl-PHP-Serialization
 Requires:	perl-Sys-Mmap
 Requires:	php(mysql)
@@ -66,8 +69,8 @@ Suggests:	cambozola
 Suggests:	perl-MIME-Lite
 Obsoletes:	zm
 Obsoletes:	zm-X10
-Obsoletes:	zoneminder-X10
 Obsoletes:	zm-control
+Obsoletes:	zoneminder-X10
 Obsoletes:	zoneminder-control
 Conflicts:	apache-base < 2.4.0-1
 BuildRoot:	%{tmpdir}/%{name}-%{version}-root-%(id -u -n)
@@ -98,19 +101,11 @@ różnymi kamerami USB i sieciowymi kamerami IP.
 %setup -q -n ZoneMinder-%{version} -a4
 %undos scripts/zm.in
 
-%patch0 -p1
 cd xlib_shm-*
 %patch1 -p1
 cd ..
 %patch2 -p1
 %patch3 -p1
-%patch4 -p1
-%patch5 -p1
-%patch6 -p1
-%patch7 -p1
-%patch8 -p1
-%patch9 -p1
-%patch10 -p1
 
 sed -i -e 's#-frepo##g' src/Makefile.am
 sed -i -e 's#chown#true#g' -e 's#chmod#true#g' *.am */*.am */*/*.am
@@ -123,16 +118,14 @@ GRANT SELECT,INSERT,UPDATE,DELETE ON zm.* TO 'zmuser'@localhost IDENTIFIED BY 'z
 EOF
 
 %build
+%{__autoheader}
 %{__aclocal}
 %{__autoconf}
 %{__automake}
 %configure \
+	ZM_RUNDIR=%{_var}/run/zoneminder \
+	ZM_LOGDIR=%{_var}/log/zoneminder \
 	--with-libarch=%{_lib} \
-%ifarch %{ix86} %{x8664}
-	--enable-crashtrace \
-%else
-	--disable-crashtrace \
-%endif
 	--enable-mmap=yes \
 	--disable-debug \
 	--with-mysql=%{_prefix} \
@@ -153,7 +146,7 @@ EOF
 %install
 rm -rf $RPM_BUILD_ROOT
 install -d $RPM_BUILD_ROOT{%{_localstatedir}/{run,log/zoneminder},/etc/logrotate.d} \
-	$RPM_BUILD_ROOT%{_webapps}/%{_webapp}
+	$RPM_BUILD_ROOT{%{_webapps}/%{_webapp},%{_sysconfdir}/tmpfiles.d}
 
 %{__make} install \
 	DESTDIR=$RPM_BUILD_ROOT \
@@ -177,6 +170,7 @@ install %{SOURCE5} $RPM_BUILD_ROOT%{_appdir}/www
 install zm_xlib_shm $RPM_BUILD_ROOT%{_bindir}
 
 cp -p %{SOURCE2} $RPM_BUILD_ROOT%{_webapps}/%{_webapp}/httpd.conf
+cp -p %{SOURCE6} $RPM_BUILD_ROOT%{_sysconfdir}/tmpfiles.d/%{name}.conf
 
 %clean
 rm -rf $RPM_BUILD_ROOT
@@ -205,13 +199,13 @@ exit 0
 
 %files
 %defattr(644,root,root,755)
-%doc AUTHORS README
+%doc AUTHORS BUGS ChangeLog README.md
 %dir %attr(750,root,http) %{_webapps}/%{_webapp}
 %attr(640,root,root) %config(noreplace) %verify(not md5 mtime size) %{_webapps}/%{_webapp}/httpd.conf
 %config(noreplace) %attr(640,root,http) %{_sysconfdir}/zm.conf
 %config(noreplace) /etc/logrotate.d/%{name}
+%{_sysconfdir}/tmpfiles.d/%{name}.conf
 %attr(754,root,root) /etc/rc.d/init.d/zoneminder
-%attr(4755,root,root) %{_bindir}/zmfix
 %attr(755,root,root) %{_bindir}/zma
 %attr(755,root,root) %{_bindir}/zmaudit.pl
 %attr(755,root,root) %{_bindir}/zmcontrol.pl
@@ -228,9 +222,8 @@ exit 0
 %attr(755,root,root) %{_bindir}/zmvideo.pl
 %attr(755,root,root) %{_bindir}/zmwatch.pl
 %attr(755,root,root) %{_bindir}/zm_xlib_shm
-%dir %{_datadir}/ZoneMinder
-%{_datadir}/ZoneMinder/db
 %dir %{_appdir}
+%{_appdir}/db
 %dir %{_appdir}/www
 %{_appdir}/www/*.*
 %{_appdir}/www/ajax
