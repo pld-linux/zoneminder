@@ -8,12 +8,12 @@
 Summary:	Zone Minder is a software motion detector with nice WWW GUI
 Summary(pl.UTF-8):	Zone Minder - programowy wykrywacz ruchu z miłym GUI przez WWW
 Name:		zoneminder
-Version:	1.27.0
-Release:	2
+Version:	1.28.0
+Release:	1
 License:	GPL v2
 Group:		Applications/Graphics
 Source0:	https://github.com/ZoneMinder/ZoneMinder/archive/v%{version}.tar.gz
-# Source0-md5:	9ff149baa1a0d04931fbafcdb3200fab
+# Source0-md5:	b0317c6fe003de9a0c7c76078b0adc2b
 Source1:	zm-init
 Source2:	zm.conf
 Source3:	zm-logrotate_d
@@ -50,6 +50,7 @@ BuildRequires:	perl-PHP-Serialization
 BuildRequires:	perl-Sys-Mmap
 BuildRequires:	perl-devel
 BuildRequires:	perl-libwww
+BuildRequires:	polkit-devel
 BuildRequires:	rpmbuild(macros) >= 1.268
 BuildRequires:	vlc-devel
 BuildRequires:	xorg-lib-libXv-devel
@@ -132,6 +133,7 @@ rm -rf jscalendar-[0-9]*/doc
 %{__automake}
 %configure \
 	ZM_RUNDIR=%{_var}/run/zoneminder \
+	ZM_SOCKDIR=%{_var}/run/zoneminder \
 	ZM_LOGDIR=%{_var}/log/zoneminder \
 	--with-libarch=%{_lib} \
 	--enable-mmap=yes \
@@ -220,6 +222,7 @@ exit 0
 %attr(754,root,root) /etc/rc.d/init.d/zoneminder
 %attr(755,root,root) %{_bindir}/zma
 %attr(755,root,root) %{_bindir}/zmaudit.pl
+%attr(755,root,root) %{_bindir}/zmcamtool.pl
 %attr(755,root,root) %{_bindir}/zmcontrol.pl
 %attr(755,root,root) %{_bindir}/zmc
 %attr(755,root,root) %{_bindir}/zmdc.pl
@@ -227,6 +230,7 @@ exit 0
 %attr(755,root,root) %{_bindir}/zmfilter.pl
 %attr(755,root,root) %{_bindir}/zmpkg.pl
 %attr(755,root,root) %{_bindir}/zmstreamer
+%attr(755,root,root) %{_bindir}/zmsystemctl.pl
 %attr(755,root,root) %{_bindir}/zmtrack.pl
 %attr(755,root,root) %{_bindir}/zmtrigger.pl
 %attr(755,root,root) %{_bindir}/zmu
@@ -234,6 +238,8 @@ exit 0
 %attr(755,root,root) %{_bindir}/zmvideo.pl
 %attr(755,root,root) %{_bindir}/zmwatch.pl
 %attr(755,root,root) %{_bindir}/zm_xlib_shm
+%{_datadir}/polkit-1/actions/com.zoneminder.systemctl.policy
+%{_datadir}/polkit-1/rules.d/com.zoneminder.systemctl.rules
 %dir %{_appdir}
 %{_appdir}/db
 %dir %{_appdir}/www
