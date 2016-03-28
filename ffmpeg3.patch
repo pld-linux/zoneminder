@@ -1,0 +1,650 @@
+diff -ur ZoneMinder-1.28.0.orig/src/zm_ffmpeg_camera.cpp ZoneMinder-1.28.0/src/zm_ffmpeg_camera.cpp
+--- ZoneMinder-1.28.0.orig/src/zm_ffmpeg_camera.cpp	2014-10-18 22:23:13.000000000 +0200
++++ ZoneMinder-1.28.0/src/zm_ffmpeg_camera.cpp	2016-03-28 16:04:51.704952013 +0200
+@@ -48,13 +48,13 @@
+ 	/* Has to be located inside the constructor so other components such as zma will receive correct colours and subpixel order */
+ 	if(colours == ZM_COLOUR_RGB32) {
+ 		subpixelorder = ZM_SUBPIX_ORDER_RGBA;
+-		imagePixFormat = PIX_FMT_RGBA;
++		imagePixFormat = AV_PIX_FMT_RGBA;
+ 	} else if(colours == ZM_COLOUR_RGB24) {
+ 		subpixelorder = ZM_SUBPIX_ORDER_RGB;
+-		imagePixFormat = PIX_FMT_RGB24;
++		imagePixFormat = AV_PIX_FMT_RGB24;
+ 	} else if(colours == ZM_COLOUR_GRAY8) {
+ 		subpixelorder = ZM_SUBPIX_ORDER_NONE;
+-		imagePixFormat = PIX_FMT_GRAY8;
++		imagePixFormat = AV_PIX_FMT_GRAY8;
+ 	} else {
+ 		Panic("Unexpected colours: %d",colours);
+ 	}
+@@ -193,10 +193,10 @@
+         Fatal( "Unable to open codec for video stream from %s", mPath.c_str() );
+ 
+     // Allocate space for the native video frame
+-    mRawFrame = avcodec_alloc_frame();
++    mRawFrame = av_frame_alloc();
+ 
+     // Allocate space for the converted video frame
+-    mFrame = avcodec_alloc_frame();
++    mFrame = av_frame_alloc();
+     
+ 	if(mRawFrame == NULL || mFrame == NULL)
+ 		Fatal( "Unable to allocate frame for %s", mPath.c_str() );
+diff -ur ZoneMinder-1.28.0.orig/src/zm_ffmpeg_camera.h ZoneMinder-1.28.0/src/zm_ffmpeg_camera.h
+--- ZoneMinder-1.28.0.orig/src/zm_ffmpeg_camera.h	2014-10-18 22:23:13.000000000 +0200
++++ ZoneMinder-1.28.0/src/zm_ffmpeg_camera.h	2016-03-28 16:03:33.861219876 +0200
+@@ -46,7 +46,7 @@
+     AVCodec             *mCodec;
+     AVFrame             *mRawFrame; 
+     AVFrame             *mFrame;
+-    PixelFormat         imagePixFormat;
++    AVPixelFormat       imagePixFormat;
+ #endif // HAVE_LIBAVFORMAT
+ 
+ #if HAVE_LIBSWSCALE
+diff -ur ZoneMinder-1.28.0.orig/src/zm_ffmpeg.cpp ZoneMinder-1.28.0/src/zm_ffmpeg.cpp
+--- ZoneMinder-1.28.0.orig/src/zm_ffmpeg.cpp	2014-10-18 22:23:13.000000000 +0200
++++ ZoneMinder-1.28.0/src/zm_ffmpeg.cpp	2016-03-28 16:12:27.278629582 +0200
+@@ -24,8 +24,8 @@
+ #if HAVE_LIBAVCODEC || HAVE_LIBAVUTIL || HAVE_LIBSWSCALE
+ 
+ #if HAVE_LIBAVUTIL
+-enum PixelFormat GetFFMPEGPixelFormat(unsigned int p_colours, unsigned p_subpixelorder) {
+-	enum PixelFormat pf;
++enum AVPixelFormat GetFFMPEGPixelFormat(unsigned int p_colours, unsigned p_subpixelorder) {
++	enum AVPixelFormat pf;
+ 
+ 	Debug(8,"Colours: %d SubpixelOrder: %d",p_colours,p_subpixelorder);
+ 
+@@ -34,10 +34,10 @@
+ 	  {
+ 	    if(p_subpixelorder == ZM_SUBPIX_ORDER_BGR) {
+ 	      /* BGR subpixel order */
+-	      pf = PIX_FMT_BGR24;
++	      pf = AV_PIX_FMT_BGR24;
+ 	    } else {
+ 	      /* Assume RGB subpixel order */
+-	      pf = PIX_FMT_RGB24;
++	      pf = AV_PIX_FMT_RGB24;
+ 	    }
+ 	    break;
+ 	  }
+@@ -45,25 +45,25 @@
+ 	  {
+ 	    if(p_subpixelorder == ZM_SUBPIX_ORDER_ARGB) {
+ 	      /* ARGB subpixel order */
+-	      pf = PIX_FMT_ARGB;
++	      pf = AV_PIX_FMT_ARGB;
+ 	    } else if(p_subpixelorder == ZM_SUBPIX_ORDER_ABGR) {
+ 	      /* ABGR subpixel order */
+-	      pf = PIX_FMT_ABGR;
++	      pf = AV_PIX_FMT_ABGR;
+ 	    } else if(p_subpixelorder == ZM_SUBPIX_ORDER_BGRA) {
+ 	      /* BGRA subpixel order */
+-	      pf = PIX_FMT_BGRA;
++	      pf = AV_PIX_FMT_BGRA;
+ 	    } else {
+ 	      /* Assume RGBA subpixel order */
+-	      pf = PIX_FMT_RGBA;
++	      pf = AV_PIX_FMT_RGBA;
+ 	    }
+ 	    break;
+ 	  }
+ 	  case ZM_COLOUR_GRAY8:
+-	    pf = PIX_FMT_GRAY8;
++	    pf = AV_PIX_FMT_GRAY8;
+ 	    break;
+ 	  default:
+ 	    Panic("Unexpected colours: %d",p_colours);
+-	    pf = PIX_FMT_GRAY8; /* Just to shush gcc variable may be unused warning */
++	    pf = AV_PIX_FMT_GRAY8; /* Just to shush gcc variable may be unused warning */
+ 	    break;
+ 	}
+ 
+@@ -76,13 +76,13 @@
+ 	Debug(4,"SWScale object created");
+ 
+ 	/* Allocate AVFrame for the input */
+-	input_avframe = avcodec_alloc_frame();
++	input_avframe = av_frame_alloc();
+ 	if(input_avframe == NULL) {
+ 		Fatal("Failed allocating AVFrame for the input");
+ 	}
+ 
+ 	/* Allocate AVFrame for the output */
+-	output_avframe = avcodec_alloc_frame();
++	output_avframe = av_frame_alloc();
+ 	if(output_avframe == NULL) {
+ 		Fatal("Failed allocating AVFrame for the output");
+ 	}
+@@ -105,7 +105,7 @@
+ 	Debug(4,"SWScale object destroyed");
+ }
+ 
+-int SWScale::SetDefaults(enum PixelFormat in_pf, enum PixelFormat out_pf, unsigned int width, unsigned int height) {
++int SWScale::SetDefaults(enum AVPixelFormat in_pf, enum AVPixelFormat out_pf, unsigned int width, unsigned int height) {
+ 
+ 	/* Assign the defaults */
+ 	default_input_pf = in_pf;
+@@ -118,7 +118,7 @@
+ 	return 0;
+ }
+ 
+-int SWScale::Convert(const uint8_t* in_buffer, const size_t in_buffer_size, uint8_t* out_buffer, const size_t out_buffer_size, enum PixelFormat in_pf, enum PixelFormat out_pf, unsigned int width, unsigned int height) {
++int SWScale::Convert(const uint8_t* in_buffer, const size_t in_buffer_size, uint8_t* out_buffer, const size_t out_buffer_size, enum AVPixelFormat in_pf, enum AVPixelFormat out_pf, unsigned int width, unsigned int height) {
+ 	/* Parameter checking */
+ 	if(in_buffer == NULL || out_buffer == NULL) {
+ 		Error("NULL Input or output buffer");
+@@ -181,7 +181,7 @@
+ 	return 0;
+ }
+ 
+-int SWScale::Convert(const Image* img, uint8_t* out_buffer, const size_t out_buffer_size, enum PixelFormat in_pf, enum PixelFormat out_pf, unsigned int width, unsigned int height) {
++int SWScale::Convert(const Image* img, uint8_t* out_buffer, const size_t out_buffer_size, enum AVPixelFormat in_pf, enum AVPixelFormat out_pf, unsigned int width, unsigned int height) {
+ 	if(img->Width() != width) {
+ 		Error("Source image width differs. Source: %d Output: %d",img->Width(), width);
+ 		return -12;
+Only in ZoneMinder-1.28.0/src: zm_ffmpeg.cpp~
+diff -ur ZoneMinder-1.28.0.orig/src/zm_ffmpeg.h ZoneMinder-1.28.0/src/zm_ffmpeg.h
+--- ZoneMinder-1.28.0.orig/src/zm_ffmpeg.h	2014-10-18 22:23:13.000000000 +0200
++++ ZoneMinder-1.28.0/src/zm_ffmpeg.h	2016-03-28 16:01:11.931405313 +0200
+@@ -101,7 +101,7 @@
+ 
+ 
+ #if HAVE_LIBAVUTIL
+-enum PixelFormat GetFFMPEGPixelFormat(unsigned int p_colours, unsigned p_subpixelorder);
++enum AVPixelFormat GetFFMPEGPixelFormat(unsigned int p_colours, unsigned p_subpixelorder);
+ #endif // HAVE_LIBAVUTIL
+ 
+ 
+@@ -111,19 +111,19 @@
+ public:
+ 	SWScale();
+ 	~SWScale();
+-	int SetDefaults(enum PixelFormat in_pf, enum PixelFormat out_pf, unsigned int width, unsigned int height);
++	int SetDefaults(enum AVPixelFormat in_pf, enum AVPixelFormat out_pf, unsigned int width, unsigned int height);
+ 	int ConvertDefaults(const Image* img, uint8_t* out_buffer, const size_t out_buffer_size);
+ 	int ConvertDefaults(const uint8_t* in_buffer, const size_t in_buffer_size, uint8_t* out_buffer, const size_t out_buffer_size);
+-	int Convert(const Image* img, uint8_t* out_buffer, const size_t out_buffer_size, enum PixelFormat in_pf, enum PixelFormat out_pf, unsigned int width, unsigned int height);
+-	int Convert(const uint8_t* in_buffer, const size_t in_buffer_size, uint8_t* out_buffer, const size_t out_buffer_size, enum PixelFormat in_pf, enum PixelFormat out_pf, unsigned int width, unsigned int height);
++	int Convert(const Image* img, uint8_t* out_buffer, const size_t out_buffer_size, enum AVPixelFormat in_pf, enum AVPixelFormat out_pf, unsigned int width, unsigned int height);
++	int Convert(const uint8_t* in_buffer, const size_t in_buffer_size, uint8_t* out_buffer, const size_t out_buffer_size, enum AVPixelFormat in_pf, enum AVPixelFormat out_pf, unsigned int width, unsigned int height);
+ 
+ protected:
+ 	bool gotdefaults;
+ 	struct SwsContext* swscale_ctx;
+ 	AVFrame* input_avframe;
+ 	AVFrame* output_avframe;
+-	enum PixelFormat default_input_pf;
+-	enum PixelFormat default_output_pf;
++	enum AVPixelFormat default_input_pf;
++	enum AVPixelFormat default_output_pf;
+ 	unsigned int default_width;
+ 	unsigned int default_height;
+ };
+diff -ur ZoneMinder-1.28.0.orig/src/zm_local_camera.cpp ZoneMinder-1.28.0/src/zm_local_camera.cpp
+--- ZoneMinder-1.28.0.orig/src/zm_local_camera.cpp	2014-10-18 22:23:13.000000000 +0200
++++ ZoneMinder-1.28.0/src/zm_local_camera.cpp	2016-03-28 16:11:04.980258408 +0200
+@@ -45,67 +45,67 @@
+ }
+ 
+ #if HAVE_LIBSWSCALE
+-static PixelFormat getFfPixFormatFromV4lPalette( int v4l_version, int palette )
++static AVPixelFormat getFfPixFormatFromV4lPalette( int v4l_version, int palette )
+ {
+-    PixelFormat pixFormat = PIX_FMT_NONE;
++    AVPixelFormat pixFormat = AV_PIX_FMT_NONE;
+      
+ #if ZM_HAS_V4L2
+     if ( v4l_version == 2 )
+     {
+         switch( palette )
+         {
+-#if defined(V4L2_PIX_FMT_RGB444) && defined(PIX_FMT_RGB444)
++#if defined(V4L2_PIX_FMT_RGB444) && defined(AV_PIX_FMT_RGB444)
+             case V4L2_PIX_FMT_RGB444 :
+-                pixFormat = PIX_FMT_RGB444;
++                pixFormat = AV_PIX_FMT_RGB444;
+                 break;
+ #endif // V4L2_PIX_FMT_RGB444
+             case V4L2_PIX_FMT_RGB555 :
+-                pixFormat = PIX_FMT_RGB555;
++                pixFormat = AV_PIX_FMT_RGB555;
+                 break;
+             case V4L2_PIX_FMT_RGB565 :
+-                pixFormat = PIX_FMT_RGB565;
++                pixFormat = AV_PIX_FMT_RGB565;
+                 break;
+             case V4L2_PIX_FMT_BGR24 :
+-                pixFormat = PIX_FMT_BGR24;
++                pixFormat = AV_PIX_FMT_BGR24;
+                 break;
+             case V4L2_PIX_FMT_RGB24 :
+-                pixFormat = PIX_FMT_RGB24;
++                pixFormat = AV_PIX_FMT_RGB24;
+                 break;
+             case V4L2_PIX_FMT_BGR32 :
+-                pixFormat = PIX_FMT_BGRA;
++                pixFormat = AV_PIX_FMT_BGRA;
+                 break;
+             case V4L2_PIX_FMT_RGB32 :
+-                pixFormat = PIX_FMT_ARGB;
++                pixFormat = AV_PIX_FMT_ARGB;
+                 break;
+             case V4L2_PIX_FMT_GREY :
+-                pixFormat = PIX_FMT_GRAY8;
++                pixFormat = AV_PIX_FMT_GRAY8;
+                 break;
+             case V4L2_PIX_FMT_YUYV :
+-                pixFormat = PIX_FMT_YUYV422;
++                pixFormat = AV_PIX_FMT_YUYV422;
+                 break;
+             case V4L2_PIX_FMT_YUV422P :
+-                pixFormat = PIX_FMT_YUV422P;
++                pixFormat = AV_PIX_FMT_YUV422P;
+                 break;
+             case V4L2_PIX_FMT_YUV411P :
+-                pixFormat = PIX_FMT_YUV411P;
++                pixFormat = AV_PIX_FMT_YUV411P;
+                 break;
+ #ifdef V4L2_PIX_FMT_YUV444
+             case V4L2_PIX_FMT_YUV444 :
+-                pixFormat = PIX_FMT_YUV444P;
++                pixFormat = AV_PIX_FMT_YUV444P;
+                 break;
+ #endif // V4L2_PIX_FMT_YUV444
+             case V4L2_PIX_FMT_YUV410 :
+-                pixFormat = PIX_FMT_YUV410P;
++                pixFormat = AV_PIX_FMT_YUV410P;
+                 break;
+             case V4L2_PIX_FMT_YUV420 :
+-                pixFormat = PIX_FMT_YUV420P;
++                pixFormat = AV_PIX_FMT_YUV420P;
+                 break;
+             case V4L2_PIX_FMT_JPEG :
+             case V4L2_PIX_FMT_MJPEG :
+-                pixFormat = PIX_FMT_YUVJ444P;
++                pixFormat = AV_PIX_FMT_YUVJ444P;
+                 break;
+             case V4L2_PIX_FMT_UYVY :
+-                pixFormat = PIX_FMT_UYVY422;
++                pixFormat = AV_PIX_FMT_UYVY422;
+                 break;
+             // These don't seem to have ffmpeg equivalents
+             // See if you can match any of the ones in the default clause below!?
+@@ -147,32 +147,32 @@
+                 Fatal( "Can't find swscale format for palette %d", palette );
+                 break;
+                 // These are all spare and may match some of the above
+-                pixFormat = PIX_FMT_YUVJ420P;
+-                pixFormat = PIX_FMT_YUVJ422P;
+-                pixFormat = PIX_FMT_XVMC_MPEG2_MC;
+-                pixFormat = PIX_FMT_XVMC_MPEG2_IDCT;
+-                pixFormat = PIX_FMT_UYVY422;
+-                pixFormat = PIX_FMT_UYYVYY411;
+-                pixFormat = PIX_FMT_BGR565;
+-                pixFormat = PIX_FMT_BGR555;
+-                pixFormat = PIX_FMT_BGR8;
+-                pixFormat = PIX_FMT_BGR4;
+-                pixFormat = PIX_FMT_BGR4_BYTE;
+-                pixFormat = PIX_FMT_RGB8;
+-                pixFormat = PIX_FMT_RGB4;
+-                pixFormat = PIX_FMT_RGB4_BYTE;
+-                pixFormat = PIX_FMT_NV12;
+-                pixFormat = PIX_FMT_NV21;
+-                pixFormat = PIX_FMT_RGB32_1;
+-                pixFormat = PIX_FMT_BGR32_1;
+-                pixFormat = PIX_FMT_GRAY16BE;
+-                pixFormat = PIX_FMT_GRAY16LE;
+-                pixFormat = PIX_FMT_YUV440P;
+-                pixFormat = PIX_FMT_YUVJ440P;
+-                pixFormat = PIX_FMT_YUVA420P;
+-                //pixFormat = PIX_FMT_VDPAU_H264;
+-                //pixFormat = PIX_FMT_VDPAU_MPEG1;
+-                //pixFormat = PIX_FMT_VDPAU_MPEG2;
++                pixFormat = AV_PIX_FMT_YUVJ420P;
++                pixFormat = AV_PIX_FMT_YUVJ422P;
++                pixFormat = AV_PIX_FMT_XVMC_MPEG2_MC;
++                pixFormat = AV_PIX_FMT_XVMC_MPEG2_IDCT;
++                pixFormat = AV_PIX_FMT_UYVY422;
++                pixFormat = AV_PIX_FMT_UYYVYY411;
++                pixFormat = AV_PIX_FMT_BGR565;
++                pixFormat = AV_PIX_FMT_BGR555;
++                pixFormat = AV_PIX_FMT_BGR8;
++                pixFormat = AV_PIX_FMT_BGR4;
++                pixFormat = AV_PIX_FMT_BGR4_BYTE;
++                pixFormat = AV_PIX_FMT_RGB8;
++                pixFormat = AV_PIX_FMT_RGB4;
++                pixFormat = AV_PIX_FMT_RGB4_BYTE;
++                pixFormat = AV_PIX_FMT_NV12;
++                pixFormat = AV_PIX_FMT_NV21;
++                pixFormat = AV_PIX_FMT_RGB32_1;
++                pixFormat = AV_PIX_FMT_BGR32_1;
++                pixFormat = AV_PIX_FMT_GRAY16BE;
++                pixFormat = AV_PIX_FMT_GRAY16LE;
++                pixFormat = AV_PIX_FMT_YUV440P;
++                pixFormat = AV_PIX_FMT_YUVJ440P;
++                pixFormat = AV_PIX_FMT_YUVA420P;
++                //pixFormat = AV_PIX_FMT_VDPAU_H264;
++                //pixFormat = AV_PIX_FMT_VDPAU_MPEG1;
++                //pixFormat = AV_PIX_FMT_VDPAU_MPEG2;
+             }
+         }
+     }
+@@ -184,67 +184,67 @@
+         {
+             case VIDEO_PALETTE_RGB32 :
+ 		if(BigEndian)
+-			pixFormat = PIX_FMT_ARGB;
++			pixFormat = AV_PIX_FMT_ARGB;
+ 		else
+-			pixFormat = PIX_FMT_BGRA;
++			pixFormat = AV_PIX_FMT_BGRA;
+ 		break;
+             case VIDEO_PALETTE_RGB24 :
+ 		if(BigEndian)
+-			pixFormat = PIX_FMT_RGB24;
++			pixFormat = AV_PIX_FMT_RGB24;
+ 		else
+-			pixFormat = PIX_FMT_BGR24;
++			pixFormat = AV_PIX_FMT_BGR24;
+ 		break;
+             case VIDEO_PALETTE_GREY :
+-                pixFormat = PIX_FMT_GRAY8;
++                pixFormat = AV_PIX_FMT_GRAY8;
+                 break;
+             case VIDEO_PALETTE_RGB555 :
+-                pixFormat = PIX_FMT_RGB555;
++                pixFormat = AV_PIX_FMT_RGB555;
+                 break;
+             case VIDEO_PALETTE_RGB565 :
+-                pixFormat = PIX_FMT_RGB565;
++                pixFormat = AV_PIX_FMT_RGB565;
+                 break;
+             case VIDEO_PALETTE_YUYV :
+             case VIDEO_PALETTE_YUV422 :
+-                pixFormat = PIX_FMT_YUYV422;
++                pixFormat = AV_PIX_FMT_YUYV422;
+                 break;
+             case VIDEO_PALETTE_YUV422P :
+-                pixFormat = PIX_FMT_YUV422P;
++                pixFormat = AV_PIX_FMT_YUV422P;
+                 break;
+             case VIDEO_PALETTE_YUV420P :
+-                pixFormat = PIX_FMT_YUV420P;
++                pixFormat = AV_PIX_FMT_YUV420P;
+                 break;
+             default :
+             {
+                 Fatal( "Can't find swscale format for palette %d", palette );
+                 break;
+                 // These are all spare and may match some of the above
+-                pixFormat = PIX_FMT_YUVJ420P;
+-                pixFormat = PIX_FMT_YUVJ422P;
+-                pixFormat = PIX_FMT_YUVJ444P;
+-                pixFormat = PIX_FMT_XVMC_MPEG2_MC;
+-                pixFormat = PIX_FMT_XVMC_MPEG2_IDCT;
+-                pixFormat = PIX_FMT_UYVY422;
+-                pixFormat = PIX_FMT_UYYVYY411;
+-                pixFormat = PIX_FMT_BGR565;
+-                pixFormat = PIX_FMT_BGR555;
+-                pixFormat = PIX_FMT_BGR8;
+-                pixFormat = PIX_FMT_BGR4;
+-                pixFormat = PIX_FMT_BGR4_BYTE;
+-                pixFormat = PIX_FMT_RGB8;
+-                pixFormat = PIX_FMT_RGB4;
+-                pixFormat = PIX_FMT_RGB4_BYTE;
+-                pixFormat = PIX_FMT_NV12;
+-                pixFormat = PIX_FMT_NV21;
+-                pixFormat = PIX_FMT_RGB32_1;
+-                pixFormat = PIX_FMT_BGR32_1;
+-                pixFormat = PIX_FMT_GRAY16BE;
+-                pixFormat = PIX_FMT_GRAY16LE;
+-                pixFormat = PIX_FMT_YUV440P;
+-                pixFormat = PIX_FMT_YUVJ440P;
+-                pixFormat = PIX_FMT_YUVA420P;
+-                //pixFormat = PIX_FMT_VDPAU_H264;
+-                //pixFormat = PIX_FMT_VDPAU_MPEG1;
+-                //pixFormat = PIX_FMT_VDPAU_MPEG2;
++                pixFormat = AV_PIX_FMT_YUVJ420P;
++                pixFormat = AV_PIX_FMT_YUVJ422P;
++                pixFormat = AV_PIX_FMT_YUVJ444P;
++                pixFormat = AV_PIX_FMT_XVMC_MPEG2_MC;
++                pixFormat = AV_PIX_FMT_XVMC_MPEG2_IDCT;
++                pixFormat = AV_PIX_FMT_UYVY422;
++                pixFormat = AV_PIX_FMT_UYYVYY411;
++                pixFormat = AV_PIX_FMT_BGR565;
++                pixFormat = AV_PIX_FMT_BGR555;
++                pixFormat = AV_PIX_FMT_BGR8;
++                pixFormat = AV_PIX_FMT_BGR4;
++                pixFormat = AV_PIX_FMT_BGR4_BYTE;
++                pixFormat = AV_PIX_FMT_RGB8;
++                pixFormat = AV_PIX_FMT_RGB4;
++                pixFormat = AV_PIX_FMT_RGB4_BYTE;
++                pixFormat = AV_PIX_FMT_NV12;
++                pixFormat = AV_PIX_FMT_NV21;
++                pixFormat = AV_PIX_FMT_RGB32_1;
++                pixFormat = AV_PIX_FMT_BGR32_1;
++                pixFormat = AV_PIX_FMT_GRAY16BE;
++                pixFormat = AV_PIX_FMT_GRAY16LE;
++                pixFormat = AV_PIX_FMT_YUV440P;
++                pixFormat = AV_PIX_FMT_YUVJ440P;
++                pixFormat = AV_PIX_FMT_YUVA420P;
++                //pixFormat = AV_PIX_FMT_VDPAU_H264;
++                //pixFormat = AV_PIX_FMT_VDPAU_MPEG1;
++                //pixFormat = AV_PIX_FMT_VDPAU_MPEG2;
+             }
+         }
+     }
+@@ -369,7 +369,7 @@
+ #if HAVE_LIBSWSCALE
+ 		/* Get ffmpeg pixel format based on capture palette and endianness */
+ 		capturePixFormat = getFfPixFormatFromV4lPalette( v4l_version, palette );
+-		imagePixFormat = PIX_FMT_NONE;
++		imagePixFormat = AV_PIX_FMT_NONE;
+ #endif // HAVE_LIBSWSCALE   
+ 	}
+ 
+@@ -412,13 +412,13 @@
+ 			Debug(2,"Using swscale for image conversion");
+ 			if(colours == ZM_COLOUR_RGB32) {
+ 				subpixelorder = ZM_SUBPIX_ORDER_RGBA;
+-				imagePixFormat = PIX_FMT_RGBA;
++				imagePixFormat = AV_PIX_FMT_RGBA;
+ 			} else if(colours == ZM_COLOUR_RGB24) {
+ 				subpixelorder = ZM_SUBPIX_ORDER_RGB;
+-				imagePixFormat = PIX_FMT_RGB24;
++				imagePixFormat = AV_PIX_FMT_RGB24;
+ 			} else if(colours == ZM_COLOUR_GRAY8) {
+ 				subpixelorder = ZM_SUBPIX_ORDER_NONE;
+-				imagePixFormat = PIX_FMT_GRAY8;
++				imagePixFormat = AV_PIX_FMT_GRAY8;
+ 			} else {
+ 				Panic("Unexpected colours: %d",colours);
+ 			}
+@@ -530,13 +530,13 @@
+ 			Debug(2,"Using swscale for image conversion");
+ 			if(colours == ZM_COLOUR_RGB32) {
+ 				subpixelorder = ZM_SUBPIX_ORDER_RGBA;
+-				imagePixFormat = PIX_FMT_RGBA;
++				imagePixFormat = AV_PIX_FMT_RGBA;
+ 			} else if(colours == ZM_COLOUR_RGB24) {
+ 				subpixelorder = ZM_SUBPIX_ORDER_RGB;
+-				imagePixFormat = PIX_FMT_RGB24;
++				imagePixFormat = AV_PIX_FMT_RGB24;
+ 			} else if(colours == ZM_COLOUR_GRAY8) {
+ 				subpixelorder = ZM_SUBPIX_ORDER_NONE;
+-				imagePixFormat = PIX_FMT_GRAY8;
++				imagePixFormat = AV_PIX_FMT_GRAY8;
+ 			} else {
+ 				Panic("Unexpected colours: %d",colours);
+ 			}
+@@ -611,7 +611,7 @@
+ #if HAVE_LIBSWSCALE
+ 	/* Initialize swscale stuff */
+ 	if(capture && conversion_type == 1) {
+-		tmpPicture = avcodec_alloc_frame();
++		tmpPicture = av_frame_alloc();
+ 		if ( !tmpPicture )
+ 			Fatal( "Could not allocate temporary picture" );
+ 		
+@@ -841,7 +841,7 @@
+                 Fatal( "Can't map video buffer %d (%d bytes) to memory: %s(%d)", i, vid_buf.length, strerror(errno), errno );
+ 
+ #if HAVE_LIBSWSCALE
+-		capturePictures[i] = avcodec_alloc_frame();
++		capturePictures[i] = av_frame_alloc();
+ 		if ( !capturePictures[i] )
+ 			Fatal( "Could not allocate picture" );
+ 		avpicture_fill( (AVPicture *)capturePictures[i], (uint8_t*)v4l2_data.buffers[i].start, capturePixFormat, v4l2_data.fmt.fmt.pix.width, v4l2_data.fmt.fmt.pix.height );
+@@ -995,7 +995,7 @@
+             v4l1_data.buffers[i].height = height;
+             v4l1_data.buffers[i].format = palette;
+ 
+-            capturePictures[i] = avcodec_alloc_frame();
++            capturePictures[i] = av_frame_alloc();
+             if ( !capturePictures[i] )
+                 Fatal( "Could not allocate picture" );
+             avpicture_fill( (AVPicture *)capturePictures[i], (unsigned char *)v4l1_data.bufptr+v4l1_data.frames.offsets[i], capturePixFormat, width, height );
+diff -ur ZoneMinder-1.28.0.orig/src/zm_local_camera.h ZoneMinder-1.28.0/src/zm_local_camera.h
+--- ZoneMinder-1.28.0.orig/src/zm_local_camera.h	2014-10-18 22:23:13.000000000 +0200
++++ ZoneMinder-1.28.0/src/zm_local_camera.h	2016-03-28 16:05:44.295389045 +0200
+@@ -104,8 +104,8 @@
+ 
+ #if HAVE_LIBSWSCALE
+ 	static AVFrame    	**capturePictures;
+-	PixelFormat       	imagePixFormat;
+-	PixelFormat       	capturePixFormat;
++	AVPixelFormat       	imagePixFormat;
++	AVPixelFormat       	capturePixFormat;
+ 	struct SwsContext 	*imgConversionContext;
+ 	AVFrame           	*tmpPicture;    
+ #endif // HAVE_LIBSWSCALE
+diff -ur ZoneMinder-1.28.0.orig/src/zm_mpeg.cpp ZoneMinder-1.28.0/src/zm_mpeg.cpp
+--- ZoneMinder-1.28.0.orig/src/zm_mpeg.cpp	2014-10-18 22:23:13.000000000 +0200
++++ ZoneMinder-1.28.0/src/zm_mpeg.cpp	2016-03-28 16:13:47.257080999 +0200
+@@ -131,10 +131,10 @@
+ 	  {
+ 	    if(subpixelorder == ZM_SUBPIX_ORDER_BGR) {
+ 	      /* BGR subpixel order */
+-	      pf = PIX_FMT_BGR24;
++	      pf = AV_PIX_FMT_BGR24;
+ 	    } else {
+ 	      /* Assume RGB subpixel order */
+-	      pf = PIX_FMT_RGB24;
++	      pf = AV_PIX_FMT_RGB24;
+ 	    }
+ 	    break;
+ 	  }
+@@ -142,21 +142,21 @@
+ 	  {
+ 	    if(subpixelorder == ZM_SUBPIX_ORDER_ARGB) {
+ 	      /* ARGB subpixel order */
+-	      pf = PIX_FMT_ARGB;
++	      pf = AV_PIX_FMT_ARGB;
+ 	    } else if(subpixelorder == ZM_SUBPIX_ORDER_ABGR) {
+ 	      /* ABGR subpixel order */
+-	      pf = PIX_FMT_ABGR;
++	      pf = AV_PIX_FMT_ABGR;
+ 	    } else if(subpixelorder == ZM_SUBPIX_ORDER_BGRA) {
+ 	      /* BGRA subpixel order */
+-	      pf = PIX_FMT_BGRA;
++	      pf = AV_PIX_FMT_BGRA;
+ 	    } else {
+ 	      /* Assume RGBA subpixel order */
+-	      pf = PIX_FMT_RGBA;
++	      pf = AV_PIX_FMT_RGBA;
+ 	    }
+ 	    break;
+ 	  }
+ 	  case ZM_COLOUR_GRAY8:
+-	    pf = PIX_FMT_GRAY8;
++	    pf = AV_PIX_FMT_GRAY8;
+ 	    break;
+ 	  default:
+ 	    Panic("Unexpected colours: %d",colours);
+@@ -234,7 +234,7 @@
+ 		c->codec_id = codec->id;
+ 		c->codec_type = codec->type;
+ 
+-		c->pix_fmt = strcmp( "mjpeg", ofc->oformat->name ) == 0 ? PIX_FMT_YUVJ422P : PIX_FMT_YUV420P;
++		c->pix_fmt = strcmp( "mjpeg", ofc->oformat->name ) == 0 ? AV_PIX_FMT_YUVJ422P : AV_PIX_FMT_YUV420P;
+ 		if ( bitrate <= 100 )
+ 		{
+ 			// Quality based bitrate control (VBR). Scale is 1..31 where 1 is best.
+@@ -323,7 +323,7 @@
+ 		Debug( 1, "Opened codec" );
+ 
+ 		/* allocate the encoded raw picture */
+-		opicture = avcodec_alloc_frame( );
++		opicture = av_frame_alloc( );
+ 		if ( !opicture )
+ 		{
+ 			Panic( "Could not allocate opicture" );
+@@ -344,7 +344,7 @@
+ 		tmp_opicture = NULL;
+ 		if ( c->pix_fmt != pf )
+ 		{
+-			tmp_opicture = avcodec_alloc_frame( );
++			tmp_opicture = av_frame_alloc( );
+ 			if ( !tmp_opicture )
+ 			{
+ 				Panic( "Could not allocate tmp_opicture" );
+diff -ur ZoneMinder-1.28.0.orig/src/zm_mpeg.h ZoneMinder-1.28.0/src/zm_mpeg.h
+--- ZoneMinder-1.28.0.orig/src/zm_mpeg.h	2014-10-18 22:23:13.000000000 +0200
++++ ZoneMinder-1.28.0/src/zm_mpeg.h	2016-03-28 16:02:33.701141392 +0200
+@@ -42,7 +42,7 @@
+ 	const char *filename;
+ 	const char *format;
+ 	const char *codec_name;
+-	enum PixelFormat pf;
++	enum AVPixelFormat pf;
+ 	AVOutputFormat *of;
+ 	AVFormatContext *ofc;
+ 	AVStream *ost;
+diff -ur ZoneMinder-1.28.0.orig/src/zm_remote_camera_rtsp.cpp ZoneMinder-1.28.0/src/zm_remote_camera_rtsp.cpp
+--- ZoneMinder-1.28.0.orig/src/zm_remote_camera_rtsp.cpp	2014-10-18 22:23:13.000000000 +0200
++++ ZoneMinder-1.28.0/src/zm_remote_camera_rtsp.cpp	2016-03-28 16:14:15.147729635 +0200
+@@ -62,13 +62,13 @@
+ 	/* Has to be located inside the constructor so other components such as zma will receive correct colours and subpixel order */
+ 	if(colours == ZM_COLOUR_RGB32) {
+ 		subpixelorder = ZM_SUBPIX_ORDER_RGBA;
+-		imagePixFormat = PIX_FMT_RGBA;
++		imagePixFormat = AV_PIX_FMT_RGBA;
+ 	} else if(colours == ZM_COLOUR_RGB24) {
+ 		subpixelorder = ZM_SUBPIX_ORDER_RGB;
+-		imagePixFormat = PIX_FMT_RGB24;
++		imagePixFormat = AV_PIX_FMT_RGB24;
+ 	} else if(colours == ZM_COLOUR_GRAY8) {
+ 		subpixelorder = ZM_SUBPIX_ORDER_NONE;
+-		imagePixFormat = PIX_FMT_GRAY8;
++		imagePixFormat = AV_PIX_FMT_GRAY8;
+ 	} else {
+ 		Panic("Unexpected colours: %d",colours);
+ 	}
+@@ -191,10 +191,10 @@
+         Panic( "Can't open codec" );
+ 
+     // Allocate space for the native video frame
+-    mRawFrame = avcodec_alloc_frame();
++    mRawFrame = av_frame_alloc();
+ 
+     // Allocate space for the converted video frame
+-    mFrame = avcodec_alloc_frame();
++    mFrame = av_frame_alloc();
+     
+ 	if(mRawFrame == NULL || mFrame == NULL)
+ 		Fatal( "Unable to allocate frame(s)");
+diff -ur ZoneMinder-1.28.0.orig/src/zm_remote_camera_rtsp.h ZoneMinder-1.28.0/src/zm_remote_camera_rtsp.h
+--- ZoneMinder-1.28.0.orig/src/zm_remote_camera_rtsp.h	2014-10-18 22:23:13.000000000 +0200
++++ ZoneMinder-1.28.0/src/zm_remote_camera_rtsp.h	2016-03-28 16:11:21.037246088 +0200
+@@ -58,7 +58,7 @@
+     AVCodec             *mCodec;
+     AVFrame             *mRawFrame; 
+     AVFrame             *mFrame;
+-    PixelFormat         imagePixFormat;
++    AVPixelFormat       imagePixFormat;
+ #endif // HAVE_LIBAVFORMAT
+ 
+ #if HAVE_LIBSWSCALE
