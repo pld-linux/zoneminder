@@ -19,3 +19,109 @@
          {
              for ( my $i = 0; $i < @{$filter_expr->{terms}}; $i++ )
              {
+--- ZoneMinder-1.28.0/src/zm_image.cpp.orig	2014-10-18 22:23:13.000000000 +0200
++++ ZoneMinder-1.28.0/src/zm_image.cpp	2017-04-14 18:25:49.847052104 +0200
+@@ -1668,7 +1668,7 @@ const Coord Image::centreCoord( const ch
+         line = text+index;
+         line_no++;
+     }
+-    int x = (width - (max_line_len * CHAR_WIDTH) ) / 2;
++    int x = (width - (max_line_len * ZM_CHAR_WIDTH) ) / 2;
+     int y = (height - (line_no * LINE_HEIGHT) ) / 2;
+     return( Coord( x, y ) );
+ }
+@@ -1701,7 +1701,7 @@ void Image::Annotate( const char *p_text
+     while ( (index < text_len) && (line_len = strcspn( line, "\n" )) )
+     {
+ 
+-        unsigned int line_width = line_len * CHAR_WIDTH;
++        unsigned int line_width = line_len * ZM_CHAR_WIDTH;
+ 
+         unsigned int lo_line_x = coord.X();
+         unsigned int lo_line_y = coord.Y() + (line_no * LINE_HEIGHT);
+@@ -1732,13 +1732,13 @@ void Image::Annotate( const char *p_text
+         if ( colours == ZM_COLOUR_GRAY8 )
+         {
+             unsigned char *ptr = &buffer[(lo_line_y*width)+lo_line_x];
+-            for ( unsigned int y = lo_line_y, r = 0; y < hi_line_y && r < CHAR_HEIGHT; y++, r++, ptr += width )
++            for ( unsigned int y = lo_line_y, r = 0; y < hi_line_y && r < ZM_CHAR_HEIGHT; y++, r++, ptr += width )
+             {
+                 unsigned char *temp_ptr = ptr;
+                 for ( unsigned int x = lo_line_x, c = 0; x < hi_line_x && c < line_len; c++ )
+                 {
+-                    int f = fontdata[(line[c] * CHAR_HEIGHT) + r];
+-                    for ( unsigned int i = 0; i < CHAR_WIDTH && x < hi_line_x; i++, x++, temp_ptr++ )
++                    int f = fontdata[(line[c] * ZM_CHAR_HEIGHT) + r];
++                    for ( unsigned int i = 0; i < ZM_CHAR_WIDTH && x < hi_line_x; i++, x++, temp_ptr++ )
+                     {
+                         if ( f & (0x80 >> i) )
+                         {
+@@ -1758,13 +1758,13 @@ void Image::Annotate( const char *p_text
+             unsigned int wc = width * colours;
+ 
+             unsigned char *ptr = &buffer[((lo_line_y*width)+lo_line_x)*colours];
+-            for ( unsigned int y = lo_line_y, r = 0; y < hi_line_y && r < CHAR_HEIGHT; y++, r++, ptr += wc )
++            for ( unsigned int y = lo_line_y, r = 0; y < hi_line_y && r < ZM_CHAR_HEIGHT; y++, r++, ptr += wc )
+             {
+                 unsigned char *temp_ptr = ptr;
+                 for ( unsigned int x = lo_line_x, c = 0; x < hi_line_x && c < line_len; c++ )
+                 {
+-                    int f = fontdata[(line[c] * CHAR_HEIGHT) + r];
+-                    for ( unsigned int i = 0; i < CHAR_WIDTH && x < hi_line_x; i++, x++, temp_ptr += colours )
++                    int f = fontdata[(line[c] * ZM_CHAR_HEIGHT) + r];
++                    for ( unsigned int i = 0; i < ZM_CHAR_WIDTH && x < hi_line_x; i++, x++, temp_ptr += colours )
+                     {
+                         if ( f & (0x80 >> i) )
+                         {
+@@ -1790,13 +1790,13 @@ void Image::Annotate( const char *p_text
+             unsigned int wc = width * colours;
+ 
+             uint8_t *ptr = &buffer[((lo_line_y*width)+lo_line_x)<<2];
+-            for ( unsigned int y = lo_line_y, r = 0; y < hi_line_y && r < CHAR_HEIGHT; y++, r++, ptr += wc )
++            for ( unsigned int y = lo_line_y, r = 0; y < hi_line_y && r < ZM_CHAR_HEIGHT; y++, r++, ptr += wc )
+             {
+                 Rgb* temp_ptr = (Rgb*)ptr;
+                 for ( unsigned int x = lo_line_x, c = 0; x < hi_line_x && c < line_len; c++ )
+                 {
+-                    int f = fontdata[(line[c] * CHAR_HEIGHT) + r];
+-                    for ( unsigned int i = 0; i < CHAR_WIDTH && x < hi_line_x; i++, x++, temp_ptr++ )
++                    int f = fontdata[(line[c] * ZM_CHAR_HEIGHT) + r];
++                    for ( unsigned int i = 0; i < ZM_CHAR_WIDTH && x < hi_line_x; i++, x++, temp_ptr++ )
+                     {
+                         if ( f & (0x80 >> i) )
+                         {
+--- ZoneMinder-1.28.0/src/zm_image.h.orig	2014-10-18 22:23:13.000000000 +0200
++++ ZoneMinder-1.28.0/src/zm_image.h	2017-04-14 18:25:49.817050635 +0200
+@@ -122,8 +122,8 @@ protected:
+ 	}
+ 
+ public:
+-	enum { CHAR_HEIGHT=11, CHAR_WIDTH=6 };
+-	enum { LINE_HEIGHT=CHAR_HEIGHT+0 };
++	enum { ZM_CHAR_HEIGHT=11, ZM_CHAR_WIDTH=6 };
++	enum { LINE_HEIGHT=ZM_CHAR_HEIGHT+0 };
+ 
+ protected:
+ 	static bool initialised;
+--- ZoneMinder-1.28.0/src/zm_rtp_ctrl.cpp.orig	2014-10-18 22:23:13.000000000 +0200
++++ ZoneMinder-1.28.0/src/zm_rtp_ctrl.cpp	2017-04-14 20:21:02.697466199 +0200
+@@ -220,7 +220,7 @@ int RtpCtrlThread::generateBye( const un
+ {
+     RtcpPacket *rtcpPacket = (RtcpPacket *)packet;
+ 
+-    int byteLen = sizeof(rtcpPacket->header)+sizeof(rtcpPacket->body.bye)+sizeof(rtcpPacket->body.bye.srcN[0]);
++    int byteLen = sizeof(rtcpPacket->header)+sizeof(rtcpPacket->body.bye);
+     int wordLen = ((byteLen-1)/sizeof(uint32_t))+1;
+ 
+     rtcpPacket->header.version = RTP_VERSION;
+--- ZoneMinder-1.28.0/src/zm_rtp_ctrl.h.orig	2014-10-18 22:23:13.000000000 +0200
++++ ZoneMinder-1.28.0/src/zm_rtp_ctrl.h	2017-04-14 20:18:37.863663657 +0200
+@@ -125,7 +125,7 @@ private:
+             // BYE
+             struct Bye
+             {
+-                uint32_t srcN[];     // list of sources
++                uint32_t srcN[1];     // list of sources
+                 // can't express trailing text for reason (what does this mean? it's not even english!)
+             } bye;
+          } body;

@@ -1,0 +1,187 @@
+--- ZoneMinder-1.28.0/src/zm_buffer.h.orig	2014-10-18 22:23:13.000000000 +0200
++++ ZoneMinder-1.28.0/src/zm_buffer.h	2017-04-14 21:31:30.662591552 +0200
+@@ -145,7 +145,7 @@
+     {
+         return( append( buffer.mHead, buffer.mSize ) );
+     }
+-    void tidy( bool level=0 )
++    void tidy( int level=0 )
+     {
+         if ( mHead != mStorage )
+         {
+--- ZoneMinder-1.28.0/src/zm_rtsp.cpp.orig	2014-10-18 22:23:13.000000000 +0200
++++ ZoneMinder-1.28.0/src/zm_rtsp.cpp	2017-04-14 21:45:07.582828745 +0200
+@@ -464,7 +464,7 @@
+ 
+     for ( size_t i = 0; i < lines.size(); i++ )
+     {
+-        sscanf( lines[i].c_str(), "Session: %a[0-9a-fA-F]; timeout=%d", &session, &timeout );
++        sscanf( lines[i].c_str(), "Session: %m[0-9a-fA-F]; timeout=%d", &session, &timeout );
+         sscanf( lines[i].c_str(), "Transport: %s", transport );
+     }
+ 
+@@ -542,7 +542,7 @@
+     char *rtpInfo = 0;
+     for ( size_t i = 0; i < lines.size(); i++ )
+     {
+-        sscanf( lines[i].c_str(), "RTP-Info: %as", &rtpInfo );
++        sscanf( lines[i].c_str(), "RTP-Info: %ms", &rtpInfo );
+     }
+ 
+     if ( !rtpInfo )
+--- ZoneMinder-1.28.0/xlib_shm-0.6.3/xlib_shm.c.orig	2017-04-14 21:16:44.882261246 +0200
++++ ZoneMinder-1.28.0/xlib_shm-0.6.3/xlib_shm.c	2017-04-14 21:48:04.331529494 +0200
+@@ -55,6 +55,7 @@
+ #include <stdlib.h>
+ #include <unistd.h>
+ #include <X11/Xlib.h>
++#include <X11/Xutil.h>
+ #include <stdbool.h>
+ #include <math.h>
+ #include <sys/shm.h>
+@@ -472,7 +473,7 @@
+     free(password);
+     free(database);
+     
+-    fprintf(stdout,"imgx=%d imgy=%d\ndelay=%d\nshmkey=%x\n",imgx,imgy,delay,shm_key);
++    fprintf(stdout,"imgx=%d imgy=%d\ndelay=%ld\nshmkey=%llx\n",imgx,imgy,delay,shm_key);
+     fprintf(stdout,"monitors:");
+     cam=0;
+     while(cam<cam_num)
+--- ZoneMinder-1.28.0/src/zm_logger.cpp.orig	2014-10-18 22:23:13.000000000 +0200
++++ ZoneMinder-1.28.0/src/zm_logger.cpp	2017-04-14 22:39:58.317336882 +0200
+@@ -509,7 +509,7 @@
+     #endif
+             char *timePtr = timeString;
+             timePtr += strftime( timePtr, sizeof(timeString), "%x %H:%M:%S", localtime(&timeVal.tv_sec) );
+-            snprintf( timePtr, sizeof(timeString)-(timePtr-timeString), ".%06ld", timeVal.tv_usec );
++            snprintf( timePtr, sizeof(timeString)-(timePtr-timeString), ".%06ld", (long)timeVal.tv_usec );
+     #if 0
+         }
+     #endif
+@@ -569,7 +569,7 @@
+             char escapedString[(strlen(syslogStart)*2)+1];
+ 
+             mysql_real_escape_string( &mDbConnection, escapedString, syslogStart, strlen(syslogStart) );
+-            snprintf( sql, sizeof(sql), "insert into Logs ( TimeKey, Component, Pid, Level, Code, Message, File, Line ) values ( %ld.%06ld, '%s', %d, %d, '%s', '%s', '%s', %d )", timeVal.tv_sec, timeVal.tv_usec, mId.c_str(), tid, level, classString, escapedString, file, line );
++            snprintf( sql, sizeof(sql), "insert into Logs ( TimeKey, Component, Pid, Level, Code, Message, File, Line ) values ( %lld.%06ld, '%s', %d, %d, '%s', '%s', '%s', %d )", (long long)timeVal.tv_sec, (long)timeVal.tv_usec, mId.c_str(), tid, level, classString, escapedString, file, line );
+             if ( mysql_query( &mDbConnection, sql ) )
+             {
+                 databaseLevel( NOLOG );
+--- ZoneMinder-1.28.0/src/zm_event.cpp.orig	2014-10-18 22:23:13.000000000 +0200
++++ ZoneMinder-1.28.0/src/zm_event.cpp	2017-04-14 22:44:18.196788194 +0200
+@@ -74,7 +74,7 @@
+     static char sql[ZM_SQL_MED_BUFSIZ];
+ 
+     struct tm *stime = localtime( &start_time.tv_sec );
+-    snprintf( sql, sizeof(sql), "insert into Events ( MonitorId, Name, StartTime, Width, Height, Cause, Notes ) values ( %d, 'New Event', from_unixtime( %ld ), %d, %d, '%s', '%s' )", monitor->Id(), start_time.tv_sec, monitor->Width(), monitor->Height(), cause.c_str(), notes.c_str() );
++    snprintf( sql, sizeof(sql), "insert into Events ( MonitorId, Name, StartTime, Width, Height, Cause, Notes ) values ( %d, 'New Event', from_unixtime( %lld ), %d, %d, '%s', '%s' )", monitor->Id(), (long long)start_time.tv_sec, monitor->Width(), monitor->Height(), cause.c_str(), notes.c_str() );
+     if ( mysql_query( &dbconn, sql ) )
+     {
+         Error( "Can't insert event: %s", mysql_error( &dbconn ) );
+@@ -172,7 +172,7 @@
+ 
+         Debug( 1, "Adding closing frame %d to DB", frames );
+         static char sql[ZM_SQL_SML_BUFSIZ];
+-        snprintf( sql, sizeof(sql), "insert into Frames ( EventId, FrameId, TimeStamp, Delta ) values ( %d, %d, from_unixtime( %ld ), %s%ld.%02ld )", id, frames, end_time.tv_sec, delta_time.positive?"":"-", delta_time.sec, delta_time.fsec );
++        snprintf( sql, sizeof(sql), "insert into Frames ( EventId, FrameId, TimeStamp, Delta ) values ( %d, %d, from_unixtime( %lld ), %s%ld.%02ld )", id, frames, (long long) end_time.tv_sec, delta_time.positive?"":"-", delta_time.sec, delta_time.fsec );
+         if ( mysql_query( &dbconn, sql ) )
+         {
+             Error( "Can't insert frame: %s", mysql_error( &dbconn ) );
+@@ -185,7 +185,7 @@
+     struct DeltaTimeval delta_time;
+     DELTA_TIMEVAL( delta_time, end_time, start_time, DT_PREC_2 );
+ 
+-    snprintf( sql, sizeof(sql), "update Events set Name='%s%d', EndTime = from_unixtime( %ld ), Length = %s%ld.%02ld, Frames = %d, AlarmFrames = %d, TotScore = %d, AvgScore = %d, MaxScore = %d where Id = %d", monitor->EventPrefix(), id, end_time.tv_sec, delta_time.positive?"":"-", delta_time.sec, delta_time.fsec, frames, alarm_frames, tot_score, (int)(alarm_frames?(tot_score/alarm_frames):0), max_score, id );
++    snprintf( sql, sizeof(sql), "update Events set Name='%s%d', EndTime = from_unixtime( %lld ), Length = %s%ld.%02ld, Frames = %d, AlarmFrames = %d, TotScore = %d, AvgScore = %d, MaxScore = %d where Id = %d", monitor->EventPrefix(), id, (long long) end_time.tv_sec, delta_time.positive?"":"-", delta_time.sec, delta_time.fsec, frames, alarm_frames, tot_score, (int)(alarm_frames?(tot_score/alarm_frames):0), max_score, id );
+     if ( mysql_query( &dbconn, sql ) )
+     {
+         Error( "Can't update event: %s", mysql_error( &dbconn ) );
+@@ -520,7 +520,7 @@
+         DELTA_TIMEVAL( delta_time, *(timestamps[i]), start_time, DT_PREC_2 );
+ 
+         int sql_len = strlen(sql);
+-        snprintf( sql+sql_len, sizeof(sql)-sql_len, "( %d, %d, from_unixtime(%ld), %s%ld.%02ld ), ", id, frames, timestamps[i]->tv_sec, delta_time.positive?"":"-", delta_time.sec, delta_time.fsec );
++        snprintf( sql+sql_len, sizeof(sql)-sql_len, "( %d, %d, from_unixtime(%lld), %s%ld.%02ld ), ", id, frames, (long long)timestamps[i]->tv_sec, delta_time.positive?"":"-", delta_time.sec, delta_time.fsec );
+ 
+         frameCount++;
+     }
+@@ -569,7 +569,7 @@
+ 
+         Debug( 1, "Adding frame %d to DB", frames );
+         static char sql[ZM_SQL_MED_BUFSIZ];
+-        snprintf( sql, sizeof(sql), "insert into Frames ( EventId, FrameId, Type, TimeStamp, Delta, Score ) values ( %d, %d, '%s', from_unixtime( %ld ), %s%ld.%02ld, %d )", id, frames, frame_type, timestamp.tv_sec, delta_time.positive?"":"-", delta_time.sec, delta_time.fsec, score );
++        snprintf( sql, sizeof(sql), "insert into Frames ( EventId, FrameId, Type, TimeStamp, Delta, Score ) values ( %d, %d, '%s', from_unixtime( %lld ), %s%ld.%02ld, %d )", id, frames, frame_type, (long long)timestamp.tv_sec, delta_time.positive?"":"-", delta_time.sec, delta_time.fsec, score );
+         if ( mysql_query( &dbconn, sql ) )
+         {
+             Error( "Can't insert frame: %s", mysql_error( &dbconn ) );
+@@ -656,7 +656,7 @@
+ {
+     static char sql[ZM_SQL_SML_BUFSIZ];
+ 
+-    snprintf( sql, sizeof(sql), "select Id from Events where MonitorId = %d and unix_timestamp( EndTime ) > %ld order by Id asc limit 1", monitor_id, event_time );
++    snprintf( sql, sizeof(sql), "select Id from Events where MonitorId = %d and unix_timestamp( EndTime ) > %lld order by Id asc limit 1", monitor_id, (long long)event_time );
+ 
+     if ( mysql_query( &dbconn, sql ) )
+     {
+--- ZoneMinder-1.28.0/src/zm_monitor.cpp.orig	2014-10-18 22:23:13.000000000 +0200
++++ ZoneMinder-1.28.0/src/zm_monitor.cpp	2017-04-14 22:44:52.005118045 +0200
+@@ -2949,7 +2949,7 @@
+                         found_macro = true;
+                         break;
+                     case 'f' :
+-                        d_ptr += snprintf( d_ptr, sizeof(label_text)-(d_ptr-label_text), "%02ld", ts_time->tv_usec/10000 );
++                        d_ptr += snprintf( d_ptr, sizeof(label_text)-(d_ptr-label_text), "%02ld", (long)(ts_time->tv_usec/10000) );
+                         found_macro = true;
+                         break;
+                 }
+--- ZoneMinder-1.28.0/src/zmu.cpp.orig	2014-10-18 22:23:13.000000000 +0200
++++ ZoneMinder-1.28.0/src/zmu.cpp	2017-04-14 22:47:07.361776851 +0200
+@@ -444,14 +444,14 @@
+ 					if ( timestamp.tv_sec )
+ 						strftime( timestamp_str, sizeof(timestamp_str), "%Y-%m-%d %H:%M:%S", localtime( &timestamp.tv_sec ) );
+ 					if ( image_idx == -1 )
+-						printf( "Time of last image capture: %s.%02ld\n", timestamp_str, timestamp.tv_usec/10000 );
++						printf( "Time of last image capture: %s.%02ld\n", timestamp_str, (long)(timestamp.tv_usec/10000) );
+ 					else
+-						printf( "Time of image %d capture: %s.%02ld\n", image_idx, timestamp_str, timestamp.tv_usec/10000 );
++						printf( "Time of image %d capture: %s.%02ld\n", image_idx, timestamp_str, (long)(timestamp.tv_usec/10000) );
+ 				}
+ 				else
+ 				{
+ 					if ( have_output ) printf( "%c", separator );
+-					printf( "%ld.%02ld", timestamp.tv_sec, timestamp.tv_usec/10000 );
++					printf( "%lld.%02ld", (long long)timestamp.tv_sec, (long)(timestamp.tv_usec/10000) );
+ 					have_output = true;
+ 				}
+ 			}
+@@ -718,12 +718,12 @@
+ 						if ( monitor )
+ 						{
+ 							struct timeval tv = monitor->GetTimestamp();
+-							printf( "%4d%5d%6d%9d%11ld.%02ld%6d%6d%8d%8.2f\n",
++							printf( "%4d%5d%6d%9d%11lld.%02ld%6d%6d%8d%8.2f\n",
+ 								monitor->Id(),
+ 								function,
+ 								monitor->GetState(),
+ 								monitor->GetTriggerState(),
+-								tv.tv_sec, tv.tv_usec/10000,
++								(long long)tv.tv_sec, (long)(tv.tv_usec/10000),
+ 								monitor->GetLastReadIndex(),
+ 								monitor->GetLastWriteIndex(),
+ 								monitor->GetLastEvent(),
+@@ -735,12 +735,12 @@
+ 					else
+ 					{
+ 						struct timeval tv = { 0, 0 };
+-						printf( "%4d%5d%6d%9d%11ld.%02ld%6d%6d%8d%8.2f\n",
++						printf( "%4d%5d%6d%9d%11lld.%02ld%6d%6d%8d%8.2f\n",
+ 							mon_id,
+ 							function,
+ 							0,
+ 							0,
+-							tv.tv_sec, tv.tv_usec/10000,
++							(long long)tv.tv_sec, (long)(tv.tv_usec/10000),
+ 							0,
+ 							0,
+ 							0,

@@ -9,7 +9,7 @@ Summary:	Zone Minder is a software motion detector with nice WWW GUI
 Summary(pl.UTF-8):	Zone Minder - programowy wykrywacz ruchu z miłym GUI przez WWW
 Name:		zoneminder
 Version:	1.28.0
-Release:	3
+Release:	4
 License:	GPL v2
 Group:		Applications/Graphics
 Source0:	https://github.com/ZoneMinder/ZoneMinder/archive/v%{version}.tar.gz
@@ -28,29 +28,29 @@ Patch1:		%{name}-xlib_shm.patch
 Patch2:		%{name}-build.patch
 Patch3:		%{name}-init.patch
 Patch4:		ffmpeg3.patch
+Patch5:		%{name}-types.patch
 URL:		http://www.zoneminder.com/
-BuildRequires:	autoconf
+BuildRequires:	autoconf >= 2.59
 BuildRequires:	automake
 BuildRequires:	bzip2-devel
 BuildRequires:	curl-devel
 BuildRequires:	ffmpeg-devel >= 0.4.9-4.20090225
+# scanf m modifier
+BuildRequires:	glibc-devel >= 6:2.7
 BuildRequires:	gnutls-devel
 BuildRequires:	libjpeg-devel
 BuildRequires:	libstdc++-devel
 BuildRequires:	libx264-devel
 BuildRequires:	mysql-devel
+BuildRequires:	openssl-devel
 BuildRequires:	pcre-devel
 BuildRequires:	perl-DBD-mysql
 BuildRequires:	perl-DBI
 BuildRequires:	perl-Date-Manip
-BuildRequires:	perl-Device-SerialPort
-BuildRequires:	perl-Expect
-BuildRequires:	perl-Net-SFTP
-BuildRequires:	perl-Net-SFTP-Foreign
-BuildRequires:	perl-PHP-Serialization
 BuildRequires:	perl-Sys-Mmap
-BuildRequires:	perl-devel
+BuildRequires:	perl-devel >= 1:5.6.0
 BuildRequires:	perl-libwww
+BuildRequires:	pkgconfig
 BuildRequires:	polkit-devel
 BuildRequires:	rpmbuild(macros) >= 1.268
 BuildRequires:	vlc-devel
@@ -59,11 +59,6 @@ BuildRequires:	zlib-devel
 Requires(post,preun):	/sbin/chkconfig
 Requires:	perl-DBD-mysql
 Requires:	perl-Date-Manip
-Requires:	perl-Device-SerialPort
-Requires:	perl-Expect
-Requires:	perl-MIME-tools
-Requires:	perl-Net-SFTP
-Requires:	perl-Net-SFTP-Foreign
 Requires:	perl-PHP-Serialization
 Requires:	perl-Sys-Mmap
 Requires:	php(mysql)
@@ -72,7 +67,21 @@ Requires:	rc-scripts
 Requires:	webapps
 Requires:	webserver(php)
 Suggests:	cambozola
+Suggests:	perl-Archive-Zip
+# for RS232/RS486 PTZ cameras
+Suggests:	perl-Device-SerialPort
+# for sftp event uploading
+Suggests:	perl-Expect
+# for event mail notification
+Suggests:	perl-MIME-tools
 Suggests:	perl-MIME-Lite
+# for sftp event uploading
+Suggests:	perl-Net-SFTP
+Suggests:	perl-Net-SFTP-Foreign
+# for PTZ cameras
+Suggests:	perl-Module-Load
+# for X.10 support (TODO)
+#Suggests:	perl-X10
 Obsoletes:	zm
 Obsoletes:	zm-X10
 Obsoletes:	zm-control
@@ -113,6 +122,7 @@ cd ..
 %patch2 -p1
 %patch3 -p1
 %patch4 -p1
+%patch5 -p1
 
 sed -i -e 's#-frepo##g' src/Makefile.am
 sed -i -e 's#chown#true#g' -e 's#chmod#true#g' *.am */*.am */*/*.am
@@ -125,8 +135,8 @@ GRANT SELECT,INSERT,UPDATE,DELETE ON zm.* TO 'zmuser'@localhost IDENTIFIED BY 'z
 EOF
 
 install -d jscalendar-doc
-mv jscalendar-[0-9]*/{*html,*php,doc/*,README} jscalendar-doc
-rm -rf jscalendar-[0-9]*/doc
+%{__mv} jscalendar-[0-9]*/{*html,*php,doc/*,README} jscalendar-doc
+%{__rm} -r jscalendar-[0-9]*/doc
 
 %build
 %{__autoheader}
@@ -141,10 +151,10 @@ rm -rf jscalendar-[0-9]*/doc
 	--enable-mmap=yes \
 	--disable-debug \
 	--with-mysql=%{_prefix} \
-	--with-ffmpeg		\
-	--with-webgroup=http	\
-	--with-webuser=http		 \
-	--with-webdir=%{_appdir}/www	\
+	--with-ffmpeg \
+	--with-webgroup=http \
+	--with-webuser=http \
+	--with-webdir=%{_appdir}/www \
 	--with-cgidir=%{_libdir}/%{name}/cgi-bin
 
 %{__make}
@@ -164,9 +174,9 @@ install -d $RPM_BUILD_ROOT{%{_localstatedir}/{run,log/zoneminder},/etc/logrotate
 	DESTDIR=$RPM_BUILD_ROOT \
 	INSTALLDIRS=vendor
 
-rm -rf $RPM_BUILD_ROOT%{_prefix}/%{_lib}/perl5/vendor_perl/*.*/*-*
-rm -rf $RPM_BUILD_ROOT%{_prefix}/%{_lib}/perl5/*.*/*-*
-rm -f $RPM_BUILD_ROOT%{_bindir}/zmx10.pl
+%{__rm} -r $RPM_BUILD_ROOT%{_prefix}/%{_lib}/perl5/vendor_perl/*.*/*-*
+%{__rm} -r $RPM_BUILD_ROOT%{_prefix}/%{_lib}/perl5/*.*/*-*
+%{__rm} $RPM_BUILD_ROOT%{_bindir}/zmx10.pl
 
 install -m 755 -d $RPM_BUILD_ROOT%{_localstatedir}/log/zoneminder
 for dir in events images temp
@@ -272,5 +282,5 @@ exit 0
 %dir %attr(770,root,http) /var/lib/zoneminder/temp
 
 %{perl_vendorlib}/ZoneMinder
-%{perl_vendorlib}/*.pm
-%{_mandir}/man3/ZoneMinder*3pm*
+%{perl_vendorlib}/ZoneMinder.pm
+%{_mandir}/man3/ZoneMinder*.3pm*
