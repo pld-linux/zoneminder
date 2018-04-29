@@ -1,0 +1,132 @@
+--- ZoneMinder-1.28.0/src/zm_local_camera.cpp~	2018-04-29 19:03:27.000000000 +0200
++++ ZoneMinder-1.28.0/src/zm_local_camera.cpp	2018-04-29 19:05:17.754303364 +0200
+@@ -149,8 +149,7 @@
+                 // These are all spare and may match some of the above
+                 pixFormat = AV_PIX_FMT_YUVJ420P;
+                 pixFormat = AV_PIX_FMT_YUVJ422P;
+-                pixFormat = AV_PIX_FMT_XVMC_MPEG2_MC;
+-                pixFormat = AV_PIX_FMT_XVMC_MPEG2_IDCT;
++                pixFormat = AV_PIX_FMT_XVMC;
+                 pixFormat = AV_PIX_FMT_UYVY422;
+                 pixFormat = AV_PIX_FMT_UYYVYY411;
+                 pixFormat = AV_PIX_FMT_BGR565;
+@@ -221,8 +220,7 @@
+                 pixFormat = AV_PIX_FMT_YUVJ420P;
+                 pixFormat = AV_PIX_FMT_YUVJ422P;
+                 pixFormat = AV_PIX_FMT_YUVJ444P;
+-                pixFormat = AV_PIX_FMT_XVMC_MPEG2_MC;
+-                pixFormat = AV_PIX_FMT_XVMC_MPEG2_IDCT;
++                pixFormat = AV_PIX_FMT_XVMC;
+                 pixFormat = AV_PIX_FMT_UYVY422;
+                 pixFormat = AV_PIX_FMT_UYYVYY411;
+                 pixFormat = AV_PIX_FMT_BGR565;
+--- ZoneMinder-1.28.0/src/zm_mpeg.cpp~	2018-04-29 19:03:27.000000000 +0200
++++ ZoneMinder-1.28.0/src/zm_mpeg.cpp	2018-04-29 19:08:39.438905569 +0200
+@@ -239,7 +239,7 @@
+ 		{
+ 			// Quality based bitrate control (VBR). Scale is 1..31 where 1 is best.
+ 			// This gets rid of artifacts in the beginning of the movie; and well, even quality.
+-			c->flags |= CODEC_FLAG_QSCALE;
++			c->flags |= AV_CODEC_FLAG_QSCALE;
+ 			c->global_quality = FF_QP2LAMBDA * (31 - (31 * (bitrate / 100.0)));
+ 		}
+ 		else
+@@ -264,7 +264,7 @@
+ 
+ 		// some formats want stream headers to be seperate
+ 		if ( of->flags & AVFMT_GLOBALHEADER )
+-			c->flags |= CODEC_FLAG_GLOBAL_HEADER;
++			c->flags |= AV_CODEC_FLAG_GLOBAL_HEADER;
+ 	}
+ 	else
+ 	{
+@@ -384,14 +384,11 @@
+ 	}
+ 
+ 	video_outbuf = NULL;
+-	if ( !(of->flags & AVFMT_RAWPICTURE) )
+-	{
+ 		/* allocate output buffer */
+ 		/* XXX: API change will be done */
+ 		// TODO: Make buffer dynamic.
+ 		video_outbuf_size = 4000000;
+ 		video_outbuf = (uint8_t *)malloc( video_outbuf_size );
+-	}
+ 	
+ #if LIBAVFORMAT_VERSION_INT >= AV_VERSION_INT(52, 100, 1)
+ 	av_dump_format(ofc, 0, filename, 1);
+@@ -619,19 +616,6 @@
+ 	AVPacket *pkt = packet_buffers[packet_index];
+ 	av_init_packet( pkt );
+     int got_packet = 0;
+-	if ( of->flags & AVFMT_RAWPICTURE )
+-	{
+-#if LIBAVUTIL_VERSION_INT >= AV_VERSION_INT(51, 2, 1)
+-		pkt->flags |= AV_PKT_FLAG_KEY;
+-#else
+-		pkt->flags |= PKT_FLAG_KEY;
+-#endif
+-		pkt->stream_index = ost->index;
+-		pkt->data = (uint8_t *)opicture_ptr;
+-		pkt->size = sizeof (AVPicture);
+-        got_packet = 1;
+-	}
+-	else
+ 	{
+ 		opicture_ptr->pts = c->frame_number;
+ 		opicture_ptr->quality = c->global_quality;
+--- ZoneMinder-1.28.0/src/zm_sdp.cpp~	2014-10-18 22:23:13.000000000 +0200
++++ ZoneMinder-1.28.0/src/zm_sdp.cpp	2018-04-29 19:11:52.951109703 +0200
+@@ -382,7 +382,7 @@
+                 if ( smStaticPayloads[i].payloadType == mediaDesc->getPayloadType() )
+                 {
+                     Debug( 1, "Got static payload type %d, %s", smStaticPayloads[i].payloadType, smStaticPayloads[i].payloadName );
+-                    strncpy( stream->codec->codec_name, smStaticPayloads[i].payloadName, sizeof(stream->codec->codec_name) );;
++                    //strncpy( stream->codec->codec_name, smStaticPayloads[i].payloadName, sizeof(stream->codec->codec_name) );;
+                     stream->codec->codec_type = smStaticPayloads[i].codecType;
+                     stream->codec->codec_id = smStaticPayloads[i].codecId;
+                     stream->codec->sample_rate = smStaticPayloads[i].clockRate;
+@@ -398,7 +398,7 @@
+                 if ( smDynamicPayloads[i].payloadName == mediaDesc->getPayloadDesc() )
+                 {
+                     Debug( 1, "Got dynamic payload type %d, %s", mediaDesc->getPayloadType(), smDynamicPayloads[i].payloadName );
+-                    strncpy( stream->codec->codec_name, smDynamicPayloads[i].payloadName, sizeof(stream->codec->codec_name) );;
++                    //strncpy( stream->codec->codec_name, smDynamicPayloads[i].payloadName, sizeof(stream->codec->codec_name) );;
+                     stream->codec->codec_type = smDynamicPayloads[i].codecType;
+                     stream->codec->codec_id = smDynamicPayloads[i].codecId;
+                     stream->codec->sample_rate = mediaDesc->getClock();
+@@ -406,11 +406,11 @@
+                 }
+             }
+         }
+-        if ( !stream->codec->codec_name[0] )
+-        {
+-            Warning( "Can't find payload details for %s payload type %d, name %s", mediaDesc->getType().c_str(), mediaDesc->getPayloadType(), mediaDesc->getPayloadDesc().c_str() );
+-            //return( 0 );
+-        }
++//        if ( !stream->codec->codec_name[0] )
++//        {
++//            Warning( "Can't find payload details for %s payload type %d, name %s", mediaDesc->getType().c_str(), mediaDesc->getPayloadType(), mediaDesc->getPayloadDesc().c_str() );
++//            //return( 0 );
++//        }
+         if ( mediaDesc->getWidth() )
+             stream->codec->width = mediaDesc->getWidth();
+         if ( mediaDesc->getHeight() )
+@@ -445,7 +445,7 @@
+             		uint8_t *dest = 
+             		(uint8_t *)av_malloc(packet_size + sizeof(start_sequence) +
+                   		                 stream->codec->extradata_size +
+-                      		             FF_INPUT_BUFFER_PADDING_SIZE);
++                      		             AV_INPUT_BUFFER_PADDING_SIZE);
+             		if(dest) {
+               			if(stream->codec->extradata_size) {
+                   			// av_realloc?
+@@ -456,7 +456,7 @@
+               			memcpy(dest+stream->codec->extradata_size, start_sequence, sizeof(start_sequence));
+               			memcpy(dest+stream->codec->extradata_size+sizeof(start_sequence), decoded_packet, packet_size);
+               			memset(dest+stream->codec->extradata_size+sizeof(start_sequence)+
+-                  	  		   packet_size, 0, FF_INPUT_BUFFER_PADDING_SIZE);
++                  	  		   packet_size, 0, AV_INPUT_BUFFER_PADDING_SIZE);
+ 
+               			stream->codec->extradata= dest;
+               			stream->codec->extradata_size+= sizeof(start_sequence)+packet_size;

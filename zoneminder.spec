@@ -9,7 +9,7 @@ Summary:	Zone Minder is a software motion detector with nice WWW GUI
 Summary(pl.UTF-8):	Zone Minder - programowy wykrywacz ruchu z miłym GUI przez WWW
 Name:		zoneminder
 Version:	1.28.0
-Release:	5
+Release:	6
 License:	GPL v2
 Group:		Applications/Graphics
 Source0:	https://github.com/ZoneMinder/ZoneMinder/archive/v%{version}.tar.gz
@@ -29,6 +29,7 @@ Patch2:		%{name}-build.patch
 Patch3:		%{name}-init.patch
 Patch4:		ffmpeg3.patch
 Patch5:		%{name}-types.patch
+Patch6:		ffmpeg4.patch
 URL:		http://www.zoneminder.com/
 BuildRequires:	autoconf >= 2.59
 BuildRequires:	automake
@@ -123,6 +124,7 @@ cd ..
 %patch3 -p1
 %patch4 -p1
 %patch5 -p1
+%patch6 -p1
 
 sed -i -e 's#-frepo##g' src/Makefile.am
 sed -i -e 's#chown#true#g' -e 's#chmod#true#g' *.am */*.am */*/*.am
